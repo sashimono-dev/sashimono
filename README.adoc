@@ -1,0 +1,8 @@
+== Sashimono
+
+Sashimono is an experimental build system designed to build and release Java libraries with a minimal amount of build time dependencies.
+
+This is not intended to be a replacement for Maven or Gradle, the goal of Sashimono is just to produce jar files and other Java artifacts in a way that is as secure and reproducible as possible.
+
+Existing build systems can download hundreds of additional dependencies as part of the build process, and any code run during the build process can affect the output.
+
