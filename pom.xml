@@ -65,6 +65,7 @@
                         <lineEnding>LF</lineEnding>
                         <skip>${format.skip}</skip>
                         <removeUnused>true</removeUnused>
+                        <compliance>17</compliance>
                     </configuration>
                 </plugin>
             </plugins>
