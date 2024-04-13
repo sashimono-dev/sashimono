@@ -13,9 +13,6 @@
     <artifactId>builder</artifactId>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
     </properties>
 

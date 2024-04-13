@@ -13,6 +13,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
         <quarkus.ideconfig.version>3.7.0</quarkus.ideconfig.version> <!-- Temporary until we do our own ideconfig-->
         <formatter-maven-plugin.version>2.23.0</formatter-maven-plugin.version>
         <impsort-maven-plugin.version>1.9.0</impsort-maven-plugin.version>
@@ -22,7 +23,7 @@
 
     <modules>
         <module>builder</module>
-        <module>maven-processor</module>
+        <module>maven-plugin</module>
     </modules>
 
 

@@ -1,8 +1,15 @@
 == Sashimono
 
-Sashimono is an experimental build system designed to build and release Java libraries with a minimal amount of build time dependencies.
+Sashimono is an experimental build system designed to build and release Java libraries with a minimal amount of build time dependencies. The xz attack shows that even if dependencies are built from source it is possible to hide malware in the build system itself, Sashimonos goal is to limit or prevent this possible attack vector for Java based projects.
 
-This is not intended to be a replacement for Maven or Gradle, the goal of Sashimono is just to produce jar files and other Java artifacts in a way that is as secure and reproducible as possible.
+This is not intended to be a replacement for Maven or Gradle, the goal of Sashimono is just to produce jar files and other Java artifacts in a way that is as secure and reproducible as possible. Sashimono will never run your tests or do other development focused tasks, it is only designed to build software securely.
+
 
 Existing build systems can download hundreds of additional dependencies as part of the build process, and any code run during the build process can affect the output.
 
+Sashimono is based on the following principles:
+
+- Builds should be reproducible by default
+- Sashimono should have as few dependencies as possible, ideally zero, however some functionality may required additional libraries (e.g. signing).
+- All dependencies should be explicit, and referenced by hash. Alternatively trusted keys can be specified to handle the case where a rebuilt dependencies has a different hash to the original. Transient dependencies should be resolved when the Sashimono build file is generated.
+- Everything should be checked into the repository, e.g. if you are doing code generation with a Maven plugin the release tag should have this checked in so Sashimono can build it without needed to run the code generator.
