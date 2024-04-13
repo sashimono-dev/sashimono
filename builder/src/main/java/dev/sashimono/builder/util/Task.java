@@ -31,6 +31,7 @@ public final class Task<T> {
     void start() {
         requireStateSetup();
         state = new ObjectState<>(State.STARTED, null, null);
+        outstanding.set(dependencies.size());
     }
 
     public void addDependency(Task<?> dependency) {

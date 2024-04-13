@@ -5,12 +5,13 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 /**
  * Simple multi threaded task executor
  */
-public class TaskRunner implements AutoCloseable {
+public class TaskRunner {
 
     volatile ExecutorService executorService;
 
@@ -33,7 +34,11 @@ public class TaskRunner implements AutoCloseable {
             throw new IllegalStateException("already started");
         }
         started = true;
+        executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         latch = new CountDownLatch(tasks.size());
+        for (var i : tasks) {
+            i.start();
+        }
         for (var i : tasks) {
             i.maybeSchedule();
         }
@@ -41,6 +46,8 @@ public class TaskRunner implements AutoCloseable {
             latch.await();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
+        } finally {
+            executorService.shutdown();
         }
         if (!errors.isEmpty()) {
             RuntimeException failure = new RuntimeException(errors.get(0));
@@ -78,9 +85,4 @@ public class TaskRunner implements AutoCloseable {
         });
     }
 
-    @Override
-    public void close() throws Exception {
-        executorService.shutdown();
-        executorService = null;
-    }
 }
