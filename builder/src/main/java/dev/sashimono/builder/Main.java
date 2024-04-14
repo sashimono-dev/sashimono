@@ -26,8 +26,6 @@ public class Main {
 
         ProjectConfig config = ConfigReader.readConfig(Path.of(args[0]));
 
-
-
     }
 
 }
