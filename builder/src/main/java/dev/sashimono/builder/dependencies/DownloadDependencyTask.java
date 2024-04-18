@@ -8,7 +8,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import dev.sashimono.builder.config.Dependency;
@@ -33,7 +32,8 @@ public class DownloadDependencyTask implements Function<TaskMap, ResolvedDepende
         try {
             Path target = Files.createTempFile("sashimono", "dep" + "." + dependency.type());
             String localPart = dependency.GAV().group().replace(".", "/") + "/" + dependency.GAV().artifact() + "/"
-                    + dependency.GAV().version() + "/" + dependency.GAV().artifact() + "-" + dependency.GAV().version() + "." + dependency.type();
+                    + dependency.GAV().version() + "/" + dependency.GAV().artifact() + "-" + dependency.GAV().version() + "."
+                    + dependency.type();
             for (var repo : repositoryConfig.repositories()) {
                 //TODO: local repo support
                 String fullUri = repo.url() + "/" + localPart;
