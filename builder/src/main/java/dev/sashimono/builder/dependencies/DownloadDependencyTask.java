@@ -41,8 +41,6 @@ public class DownloadDependencyTask implements Function<TaskMap, ResolvedDepende
             throw new RuntimeException("Unable to resolve " + dependency.GAV());
         } catch (IOException | URISyntaxException | InterruptedException e) {
             throw new RuntimeException(e);
-        } finally {
-            client.close();
         }
     }
 }
