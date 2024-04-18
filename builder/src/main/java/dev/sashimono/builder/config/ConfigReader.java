@@ -37,7 +37,7 @@ public class ConfigReader {
                     throw new RuntimeException("error parsing dependencies file"); // TODO: report line number etc
                 }
             }
-            return new ProjectConfig(projectRoot, List.of(new ModuleConfig(deps)));
+            return new ProjectConfig(projectRoot, List.of(new ModuleConfig(deps, List.of(projectRoot.resolve("src/main/java")))));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -84,7 +84,7 @@ public final class Task<T> {
                 i.maybeSchedule();
             }
         } catch (Throwable t) {
-            state = new ObjectState<>(State.COMPLETE, t, null);
+            state = new ObjectState<>(State.ERROR, t, null);
         }
     }
 

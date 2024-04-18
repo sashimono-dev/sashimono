@@ -23,7 +23,6 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
-import dev.sashimono.builder.config.ProjectConfig;
 import dev.sashimono.builder.util.Log;
 
 public class JavaCompiler {
@@ -35,7 +34,7 @@ public class JavaCompiler {
     private final List<Path> dependencies;
     private final List<Path> sourceDirectories;
 
-    public JavaCompiler build(List<Path> dependencies, List<Path> sourceDirectories) {
+    public static JavaCompiler build(List<Path> dependencies, List<Path> sourceDirectories) {
         return new JavaCompiler(ToolProvider.getSystemJavaCompiler(), List.of(), dependencies, sourceDirectories);
     }
 
@@ -50,7 +49,7 @@ public class JavaCompiler {
         }
     }
 
-    public void compile(ProjectConfig projectConfig) {
+    public Path compile() {
 
         StandardJavaFileManager fileManager = compiler.getStandardFileManager((DiagnosticListener) null, (Locale) null,
                 StandardCharsets.UTF_8);
@@ -77,26 +76,30 @@ public class JavaCompiler {
             fileManager.setLocation(StandardLocation.CLASS_PATH,
                     dependencies.stream().map(Path::toFile).collect(Collectors.toSet()));
             fileManager.setLocation(StandardLocation.CLASS_OUTPUT, List.of(output.toFile()));
+
+            DiagnosticCollector<JavaFileObject> diagnosticsCollector = new DiagnosticCollector();
+            var sources = fileManager
+                    .getJavaFileObjectsFromFiles(sourceFiles);
+            javax.tools.JavaCompiler.CompilationTask task = this.compiler.getTask((Writer) null, fileManager,
+                    diagnosticsCollector,
+                    this.compilerFlags, (Iterable) null, sources);
+            boolean compilationTaskSucceed = task.call();
+
+            for (Diagnostic<? extends JavaFileObject> diagnostic : diagnosticsCollector.getDiagnostics()) {
+                if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
+                    log.error(diagnostic.getMessage(Locale.getDefault()));
+                } else {
+                    log.info(diagnostic.getMessage(Locale.getDefault()));
+                }
+            }
+
+            if (!compilationTaskSucceed) {
+                throw new RuntimeException("compilation failed");
+            }
+            log.info("Compiled classes to %s", output);
+            return output;
         } catch (IOException e) {
             throw new RuntimeException("Cannot initialize file manager", e);
-        }
-        DiagnosticCollector<JavaFileObject> diagnosticsCollector = new DiagnosticCollector();
-        var sources = fileManager
-                .getJavaFileObjectsFromFiles(sourceDirectories.stream().map(Path::toFile).collect(Collectors.toSet()));
-        javax.tools.JavaCompiler.CompilationTask task = this.compiler.getTask((Writer) null, fileManager, diagnosticsCollector,
-                this.compilerFlags, (Iterable) null, sources);
-        boolean compilationTaskSucceed = task.call();
-
-        for (Diagnostic<? extends JavaFileObject> diagnostic : diagnosticsCollector.getDiagnostics()) {
-            if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
-                log.error(diagnostic.getMessage(Locale.getDefault()));
-            } else {
-                log.info(diagnostic.getMessage(Locale.getDefault()));
-            }
-        }
-
-        if (!compilationTaskSucceed) {
-            throw new RuntimeException("compilation failed");
         }
     }
 
