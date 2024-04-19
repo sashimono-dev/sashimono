@@ -18,7 +18,7 @@ public class Log {
         return new Log(category);
     }
 
-    public static Log of(Class category) {
+    public static Log of(Class<?> category) {
         return new Log(category.getName());
     }
 
