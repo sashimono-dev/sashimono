@@ -1,4 +1,4 @@
-package dev.sashimono.builder.compiler;
+package dev.sashimono.builder.jar;
 
 import dev.sashimono.builder.dependencies.ResolvedDependency;
 

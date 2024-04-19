@@ -1,4 +1,4 @@
-package dev.sashimono.builder.compiler;
+package dev.sashimono.builder.jar;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -12,6 +12,7 @@ import java.util.function.Function;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
+import dev.sashimono.builder.compiler.CompileResult;
 import dev.sashimono.builder.config.Dependency;
 import dev.sashimono.builder.config.GAV;
 import dev.sashimono.builder.dependencies.ResolvedDependency;
@@ -44,10 +45,12 @@ public class JarTask implements Function<TaskMap, JarResult> {
                 Files.walkFileTree(deps.classesDirectory(), new SimpleFileVisitor<>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        System.out.println(file.toString());
-                        ZipEntry entry = new ZipEntry(file.toString());
+                        String entryName = deps.classesDirectory().relativize(file).toString();
+                        ZipEntry entry = new ZipEntry(entryName);
                         entry.setCreationTime(FileTime.fromMillis(0));
                         entry.setSize(Files.size(file));
+                        entry.setLastAccessTime(FileTime.fromMillis(0));
+                        entry.setLastModifiedTime(FileTime.fromMillis(0));
                         out.putNextEntry(entry);
                         out.write(Files.readAllBytes(file));
                         return FileVisitResult.CONTINUE;
