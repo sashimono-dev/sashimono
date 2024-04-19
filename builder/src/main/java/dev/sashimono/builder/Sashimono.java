@@ -12,6 +12,7 @@ import dev.sashimono.builder.compiler.CompileResult;
 import dev.sashimono.builder.compiler.JavaCompilerTask;
 import dev.sashimono.builder.config.ConfigReader;
 import dev.sashimono.builder.config.Dependency;
+import dev.sashimono.builder.config.GAV;
 import dev.sashimono.builder.config.ProjectConfig;
 import dev.sashimono.builder.config.Repository;
 import dev.sashimono.builder.config.RepositoryConfig;
@@ -26,6 +27,7 @@ public class Sashimono {
 
     private static final RepositoryConfig CENTRAL = new RepositoryConfig(
             List.of(new Repository("central", "https://repo1.maven.org/maven2")));
+    public static final String JAR = "jar";
     final Path projectRoot;
     final Path outputDir;
 
@@ -40,25 +42,38 @@ public class Sashimono {
         HttpClient httpClient = HttpClient.newHttpClient();
         Map<Dependency, Task<ResolvedDependency>> depTasks = new HashMap<>();
 
+        Map<GAV, Task<JarResult>> jarTasks = new HashMap<>();
         for (var m : config.moduleConfigs()) {
-            List<Task<ResolvedDependency>> moduleDependencies = new ArrayList<>();
+            if (m.packaging().equals(JAR)) {
+                jarTasks.put(m.gav(), runner.newTask(JarResult.class, new JarTask(outputDir, m.gav())));
+            }
+        }
+        for (var m : config.moduleConfigs()) {
+            List<Task<?>> moduleDependencies = new ArrayList<>();
             for (var i : m.dependencies()) {
-                Task<ResolvedDependency> downloadTask;
-                if (depTasks.containsKey(i)) {
-                    downloadTask = depTasks.get(i);
+                if (jarTasks.containsKey(i.GAV())) {
+                    moduleDependencies.add(jarTasks.get(i.GAV()));
                 } else {
-                    downloadTask = runner.newTask(ResolvedDependency.class,
-                            new DownloadDependencyTask(i, CENTRAL, httpClient));
-                    depTasks.put(i, downloadTask);
+                    Task<ResolvedDependency> downloadTask;
+                    if (depTasks.containsKey(i)) {
+                        downloadTask = depTasks.get(i);
+                    } else {
+                        downloadTask = runner.newTask(ResolvedDependency.class,
+                                new DownloadDependencyTask(i, CENTRAL, httpClient));
+                        depTasks.put(i, downloadTask);
+                    }
+                    moduleDependencies.add(downloadTask);
                 }
-                moduleDependencies.add(downloadTask);
             }
-            Task<CompileResult> compileTask = runner.newTask(CompileResult.class, new JavaCompilerTask(m.sourceDirectories()));
-            for (var i : moduleDependencies) {
-                compileTask.addDependency(i);
+            if (m.packaging().equals(JAR)) {
+                Task<CompileResult> compileTask = runner.newTask(CompileResult.class,
+                        new JavaCompilerTask(m.sourceDirectories()));
+                for (var i : moduleDependencies) {
+                    compileTask.addDependency(i);
+                }
+                Task<JarResult> jarTask = jarTasks.get(m.gav());
+                jarTask.addDependency(compileTask);
             }
-            Task<JarResult> jarTask = runner.newTask(JarResult.class, new JarTask(outputDir, m.gav()));
-            jarTask.addDependency(compileTask);
         }
         runner.run();
     }

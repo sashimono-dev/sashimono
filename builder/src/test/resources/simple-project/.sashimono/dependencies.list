@@ -1,5 +1,6 @@
 
 artifact com.foo:test:1.1.0.Final
+packaging jar
 
 #project dependency files, format TBD but will draw inspiration from go.mod
 require org.apache.httpcomponents:httpclient:4.5.14 #TODO: checksums

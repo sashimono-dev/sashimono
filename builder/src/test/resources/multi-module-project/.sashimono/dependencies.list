@@ -1,0 +1,6 @@
+
+artifact com.acme:parent:1.0
+packaging pom
+
+module foo
+module bar
