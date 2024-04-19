@@ -14,6 +14,7 @@ import java.util.function.Function;
 public class TaskRunner {
 
     volatile ExecutorService executorService;
+    volatile ExecutorService backgroundExecutor;
 
     volatile boolean started = false;
 
@@ -24,7 +25,13 @@ public class TaskRunner {
     private volatile CountDownLatch latch;
 
     public <T> Task<T> newTask(Class<T> type, Function<TaskMap, T> task) {
-        Task<T> ret = new Task<>(this, type, task);
+        Task<T> ret = new Task<>(this, type, task, false);
+        tasks.add(ret);
+        return ret;
+    }
+
+    public <T> Task<T> newBackgroundTask(Class<T> type, Function<TaskMap, T> task) {
+        Task<T> ret = new Task<>(this, type, task, true);
         tasks.add(ret);
         return ret;
     }
@@ -35,19 +42,21 @@ public class TaskRunner {
         }
         started = true;
         executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        backgroundExecutor = Executors.newFixedThreadPool(8); //TODO: configurable
         latch = new CountDownLatch(tasks.size());
-        for (var i : tasks) {
-            i.start();
-        }
-        for (var i : tasks) {
-            i.maybeSchedule();
-        }
         try {
+            for (var i : tasks) {
+                i.start();
+            }
+            for (var i : tasks) {
+                i.maybeSchedule();
+            }
             latch.await();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
             executorService.shutdown();
+            backgroundExecutor.shutdown();
         }
         if (!errors.isEmpty()) {
             RuntimeException failure = new RuntimeException(errors.get(0));
@@ -59,7 +68,8 @@ public class TaskRunner {
     }
 
     void schedule(Task<?> task) {
-        executorService.execute(new Runnable() {
+        ExecutorService ex = task.background() ? backgroundExecutor : executorService;
+        ex.execute(new Runnable() {
             @Override
             public void run() {
                 try {

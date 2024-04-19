@@ -31,7 +31,7 @@ public class Log {
                 "[" + category + "] " + DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()) + " " + message);
     }
 
-    public void info(String message, Object... params) {
+    public void infof(String message, Object... params) {
         info(String.format(message, params));
     }
 
@@ -41,7 +41,7 @@ public class Log {
                         + message);
     }
 
-    public void error(String message, Object... params) {
+    public void errorf(String message, Object... params) {
         error(String.format(message, params));
     }
 
@@ -54,7 +54,7 @@ public class Log {
                         + message);
     }
 
-    public void debug(String message, Object... params) {
+    public void debugf(String message, Object... params) {
         if (!DEBUG) {
             return;
         }

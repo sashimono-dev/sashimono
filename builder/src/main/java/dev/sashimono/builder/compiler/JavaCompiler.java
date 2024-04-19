@@ -96,7 +96,7 @@ public class JavaCompiler {
             if (!compilationTaskSucceed) {
                 throw new RuntimeException("compilation failed");
             }
-            log.info("Compiled classes to %s", output);
+            log.infof("Compiled classes to %s", output);
             return output;
         } catch (IOException e) {
             throw new RuntimeException("Cannot initialize file manager", e);

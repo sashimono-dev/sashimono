@@ -16,6 +16,7 @@ import dev.sashimono.builder.compiler.CompileResult;
 import dev.sashimono.builder.config.Dependency;
 import dev.sashimono.builder.config.GAV;
 import dev.sashimono.builder.dependencies.ResolvedDependency;
+import dev.sashimono.builder.util.Log;
 import dev.sashimono.builder.util.TaskMap;
 
 /**
@@ -23,6 +24,7 @@ import dev.sashimono.builder.util.TaskMap;
  */
 public class JarTask implements Function<TaskMap, JarResult> {
 
+    private static final Log log = Log.of(JarTask.class);
     private final Path outputDir;
     private final GAV gav;
 
@@ -60,6 +62,7 @@ public class JarTask implements Function<TaskMap, JarResult> {
                     }
                 });
             }
+            log.infof("created jar %s", target);
 
             return new JarResult(new ResolvedDependency(new Dependency(gav, "jar"), target, Optional.empty()));
         } catch (IOException e) {

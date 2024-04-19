@@ -44,9 +44,13 @@ public class Sashimono {
         Map<Dependency, Task<ResolvedDependency>> depTasks = new HashMap<>();
 
         Map<GAV, Task<JarResult>> jarTasks = new HashMap<>();
+        //first we need to figure out what we are building locally, so we don't try and download it
         for (var m : config.moduleConfigs()) {
             if (m.packaging().equals(JAR)) {
                 Task<JarResult> jarTask = runner.newTask(JarResult.class, new JarTask(outputDir, m.gav()));
+
+                //this task allows us to treat compiled jar files the same as downloaded dependencies
+                //it just maps between the two types
                 Task<ResolvedDependency> jarAsDependency = runner.newTask(ResolvedDependency.class, t -> {
                     var jar = t.results(JarResult.class).get(0);
                     return new ResolvedDependency(jar.result().dependency(), jar.result().path(), Optional.empty());
@@ -58,13 +62,20 @@ public class Sashimono {
         }
         for (var m : config.moduleConfigs()) {
             List<Task<?>> moduleDependencies = new ArrayList<>();
+            //download dependencies
             for (var i : m.dependencies()) {
 
                 Task<ResolvedDependency> downloadTask;
                 if (depTasks.containsKey(i)) {
+                    //already queued for download, or locally built. We don't want to download things twice
                     downloadTask = depTasks.get(i);
                 } else {
-                    downloadTask = runner.newTask(ResolvedDependency.class,
+                    //queue the dependency for download
+                    //dependency downloads are 'background' tasks, as we always want to do compilation
+                    //and actual built tasks if they are ready in preference
+                    //we don't want to download a full projects dependencies before we start
+                    //building anything
+                    downloadTask = runner.newBackgroundTask(ResolvedDependency.class,
                             new DownloadDependencyTask(i, CENTRAL, httpClient));
                     depTasks.put(i, downloadTask);
                 }

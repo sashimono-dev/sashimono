@@ -15,6 +15,8 @@ public final class Task<T> {
     private final TaskRunner taskRunner;
     private final Class<T> type;
     private final Function<TaskMap, T> task;
+
+    private final boolean background;
     private final Set<Task<?>> dependencies = new HashSet<>();
     private final Set<Task<?>> dependants = new HashSet<>();
 
@@ -22,10 +24,11 @@ public final class Task<T> {
 
     private volatile ObjectState<T> state = new ObjectState<>(State.SETUP, null, null);
 
-    public Task(TaskRunner taskRunner, Class<T> type, Function<TaskMap, T> task) {
+    Task(TaskRunner taskRunner, Class<T> type, Function<TaskMap, T> task, boolean background) {
         this.taskRunner = taskRunner;
         this.task = task;
         this.type = type;
+        this.background = background;
     }
 
     void start() {
@@ -111,6 +114,10 @@ public final class Task<T> {
 
     public Throwable error() {
         return state.error;
+    }
+
+    public boolean background() {
+        return background;
     }
 
     void forEachDependent(Consumer<Task<?>> callback) {
