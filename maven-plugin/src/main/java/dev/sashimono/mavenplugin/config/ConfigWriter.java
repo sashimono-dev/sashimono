@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Writes a project config to a .sashimono directory
@@ -16,7 +17,7 @@ public class ConfigWriter {
     public static final String SASHIMONO_DIR = ".sashimono";
     public static final String DEPENDENCIES_LIST = "dependencies.list";
     public static final String REQUIRE_ = "require ";
-    public static final String SCOPE = "compile";
+    public static final List<String> SCOPES = List.of("compile", "provided");
     public static final char DELIMITER = ':';
     public static final String ARTIFACT_ = "artifact ";
     public static final String PACKAGING_ = "packaging ";
@@ -38,8 +39,8 @@ public class ConfigWriter {
                     writer.write(MODULE_ + module + System.lineSeparator());
                 }
                 for (final Dependency dependency : project.getDependencies()) {
-                    // We only care about compile dependencies
-                    if (dependency.getScope().equals(SCOPE)) {
+                    // We only care about compile and provided dependencies
+                    if (SCOPES.contains(dependency.getScope())) {
                         // Write dependency details
                         writer.write(REQUIRE_ + dependency.getGroupId() + DELIMITER + dependency.getArtifactId() + DELIMITER
                                 + dependency.getVersion() + System.lineSeparator());

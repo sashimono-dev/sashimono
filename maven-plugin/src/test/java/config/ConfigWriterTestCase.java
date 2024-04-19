@@ -35,7 +35,11 @@ public class ConfigWriterTestCase {
         final String fileContents = Files
                 .readString(tempDir.toPath().resolve(ConfigWriter.SASHIMONO_DIR).resolve(ConfigWriter.DEPENDENCIES_LIST));
         Assertions.assertEquals(
-                "artifact com.acme:parent:1.0\npackaging pom\nmodule foo\nmodule bar\nrequire org.apache.httpcomponents:httpclient:4.5.14\n",
+                "artifact com.acme:parent:1.0\n" +
+                        "packaging pom\n" +
+                        "module foo\n" +
+                        "module bar\n" +
+                        "require org.apache.httpcomponents:httpclient:4.5.14\n",
                 fileContents);
     }
 
@@ -57,7 +61,10 @@ public class ConfigWriterTestCase {
         ConfigWriter.writeConfig(project);
         final String fileContents = Files
                 .readString(tempDir.toPath().resolve(ConfigWriter.SASHIMONO_DIR).resolve(ConfigWriter.DEPENDENCIES_LIST));
-        Assertions.assertEquals("artifact com.acme:foo:1.0\npackaging jar\nrequire org.apache.httpcomponents:httpclient:4.5.14\n",
+        Assertions.assertEquals(
+                "artifact com.acme:foo:1.0\n" +
+                        "packaging jar\n" +
+                        "require org.apache.httpcomponents:httpclient:4.5.14\n",
                 fileContents);
     }
 
