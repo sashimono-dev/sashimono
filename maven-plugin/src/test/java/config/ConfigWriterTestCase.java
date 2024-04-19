@@ -1,6 +1,10 @@
 package config;
 
-import dev.sashimono.mavenplugin.config.ConfigWriter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
+
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.project.MavenProject;
@@ -8,10 +12,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
+import dev.sashimono.mavenplugin.config.ConfigWriter;
 
 public class ConfigWriterTestCase {
 

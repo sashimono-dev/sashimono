@@ -1,13 +1,13 @@
 package dev.sashimono.mavenplugin.config;
 
-import org.apache.maven.model.Dependency;
-import org.apache.maven.project.MavenProject;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+
+import org.apache.maven.model.Dependency;
+import org.apache.maven.project.MavenProject;
 
 /**
  * Writes a project config to a .sashimono directory
