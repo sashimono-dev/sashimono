@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import dev.sashimono.builder.compiler.CompileResult;
 import dev.sashimono.builder.compiler.JavaCompilerTask;
@@ -45,25 +46,30 @@ public class Sashimono {
         Map<GAV, Task<JarResult>> jarTasks = new HashMap<>();
         for (var m : config.moduleConfigs()) {
             if (m.packaging().equals(JAR)) {
-                jarTasks.put(m.gav(), runner.newTask(JarResult.class, new JarTask(outputDir, m.gav())));
+                Task<JarResult> jarTask = runner.newTask(JarResult.class, new JarTask(outputDir, m.gav()));
+                Task<ResolvedDependency> jarAsDependency = runner.newTask(ResolvedDependency.class, t -> {
+                    var jar = t.results(JarResult.class).get(0);
+                    return new ResolvedDependency(jar.result().dependency(), jar.result().path(), Optional.empty());
+                });
+                jarAsDependency.addDependency(jarTask);
+                jarTasks.put(m.gav(), jarTask);
+                depTasks.put(new Dependency(m.gav(), JAR), jarAsDependency);
             }
         }
         for (var m : config.moduleConfigs()) {
             List<Task<?>> moduleDependencies = new ArrayList<>();
             for (var i : m.dependencies()) {
-                if (jarTasks.containsKey(i.GAV())) {
-                    moduleDependencies.add(jarTasks.get(i.GAV()));
+
+                Task<ResolvedDependency> downloadTask;
+                if (depTasks.containsKey(i)) {
+                    downloadTask = depTasks.get(i);
                 } else {
-                    Task<ResolvedDependency> downloadTask;
-                    if (depTasks.containsKey(i)) {
-                        downloadTask = depTasks.get(i);
-                    } else {
-                        downloadTask = runner.newTask(ResolvedDependency.class,
-                                new DownloadDependencyTask(i, CENTRAL, httpClient));
-                        depTasks.put(i, downloadTask);
-                    }
-                    moduleDependencies.add(downloadTask);
+                    downloadTask = runner.newTask(ResolvedDependency.class,
+                            new DownloadDependencyTask(i, CENTRAL, httpClient));
+                    depTasks.put(i, downloadTask);
                 }
+                moduleDependencies.add(downloadTask);
+
             }
             if (m.packaging().equals(JAR)) {
                 Task<CompileResult> compileTask = runner.newTask(CompileResult.class,

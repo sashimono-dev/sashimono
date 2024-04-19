@@ -11,6 +11,8 @@ import java.util.Set;
 
 /**
  * Reads a project config from a .sashimono directory
+ *
+ * This format is very much subject to change.
  */
 public class ConfigReader {
 

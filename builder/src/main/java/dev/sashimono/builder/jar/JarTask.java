@@ -18,6 +18,9 @@ import dev.sashimono.builder.config.GAV;
 import dev.sashimono.builder.dependencies.ResolvedDependency;
 import dev.sashimono.builder.util.TaskMap;
 
+/**
+ * Creates a jar file from compiled class files.
+ */
 public class JarTask implements Function<TaskMap, JarResult> {
 
     private final Path outputDir;
