@@ -8,6 +8,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.function.Function;
 
 import dev.sashimono.builder.config.Dependency;
@@ -40,7 +41,7 @@ public class DownloadDependencyTask implements Function<TaskMap, ResolvedDepende
                 var result = client.send(HttpRequest.newBuilder().GET().uri(new URI(fullUri)).build(),
                         HttpResponse.BodyHandlers.ofFile(target));
                 if (result.statusCode() == 200) {
-                    return new ResolvedDependency(dependency, target, repo);
+                    return new ResolvedDependency(dependency, target, Optional.of(repo));
                 } else {
                     Files.delete(target);
                 }

@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import dev.sashimono.builder.compiler.CompileResult;
+import dev.sashimono.builder.compiler.JarResult;
+import dev.sashimono.builder.compiler.JarTask;
 import dev.sashimono.builder.compiler.JavaCompilerTask;
 import dev.sashimono.builder.config.ConfigReader;
 import dev.sashimono.builder.config.Dependency;
@@ -22,9 +25,8 @@ import dev.sashimono.builder.util.TaskRunner;
 /**
  * The entry point for the build tool.
  * <p>
- * By design this tool only accepts the path of a project to build,
- * in the interests of reproducibility all config needs to be specified
- * in the project itself rather than on the command line.
+ * By design this tool accepts a limited number of parameters, anything actually affecting the build process needs
+ * to be specified in the build config.
  * <p>
  * Note that some debug options may be exposed through system properties,
  * however this should not affect the actual results of the execution in any way.
@@ -39,7 +41,8 @@ public class Main {
             System.exit(1);
         }
 
-        ProjectConfig config = ConfigReader.readConfig(Path.of(args[0]));
+        Path projectRoot = Path.of(args[0]);
+        ProjectConfig config = ConfigReader.readConfig(projectRoot);
         TaskRunner runner = new TaskRunner();
         HttpClient httpClient = HttpClient.newHttpClient();
         Map<Dependency, Task<ResolvedDependency>> depTasks = new HashMap<>();
@@ -57,10 +60,12 @@ public class Main {
                 }
                 moduleDependencies.add(downloadTask);
             }
-            Task<Path> compileTask = runner.newTask(Path.class, new JavaCompilerTask(m.sourceDirectories()));
+            Task<CompileResult> compileTask = runner.newTask(CompileResult.class, new JavaCompilerTask(m.sourceDirectories()));
             for (var i : moduleDependencies) {
                 compileTask.addDependency(i);
             }
+            Task<JarResult> jarTask = runner.newTask(JarResult.class, new JarTask(projectRoot.resolve("output"), m.gav()));
+            jarTask.addDependency(compileTask);
         }
         runner.run();
 

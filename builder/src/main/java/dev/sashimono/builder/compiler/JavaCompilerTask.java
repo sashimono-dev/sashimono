@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import dev.sashimono.builder.dependencies.ResolvedDependency;
 import dev.sashimono.builder.util.TaskMap;
 
-public class JavaCompilerTask implements Function<TaskMap, Path> {
+public class JavaCompilerTask implements Function<TaskMap, CompileResult> {
 
     private final List<Path> sourceDirectories;
 
@@ -17,12 +17,12 @@ public class JavaCompilerTask implements Function<TaskMap, Path> {
     }
 
     @Override
-    public Path apply(TaskMap taskMap) {
+    public CompileResult apply(TaskMap taskMap) {
         var deps = taskMap.results(ResolvedDependency.class).stream().map(ResolvedDependency::path)
                 .collect(Collectors.toList());
 
         var compiler = JavaCompiler.build(deps, sourceDirectories);
 
-        return compiler.compile();
+        return new CompileResult(compiler.compile());
     }
 }

@@ -19,6 +19,7 @@ public class ConfigReaderTestCase {
         Assertions.assertEquals("org.apache.httpcomponents", dep.GAV().group());
         Assertions.assertEquals("httpclient", dep.GAV().artifact());
         Assertions.assertEquals("4.5.14", dep.GAV().version());
+        Assertions.assertEquals(new GAV("com.foo", "test", "1.1.0.Final"), module.gav());
     }
 
 }
