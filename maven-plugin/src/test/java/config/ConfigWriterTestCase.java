@@ -25,13 +25,13 @@ public class ConfigWriterTestCase {
         final String fileContents = Files
                 .readString(tempDir.toPath().resolve(ConfigWriter.SASHIMONO_DIR).resolve(ConfigWriter.DEPENDENCIES_LIST));
         final String expected = """
-                        artifact com.acme:parent:1.0
-                        packaging pom
-                        module foo
-                        module bar
-                        require org.apache.httpcomponents:httpclient:4.5.14
-                        require org.hibernate.orm:hibernate-core:6.4.4.Final
-                        """.replaceAll("\n", System.lineSeparator());
+                artifact com.acme:parent:1.0
+                packaging pom
+                module foo
+                module bar
+                require org.apache.httpcomponents:httpclient:4.5.14
+                require org.hibernate.orm:hibernate-core:6.4.4.Final
+                """.replaceAll("\n", System.lineSeparator());
         Assertions.assertEquals(expected, fileContents);
     }
 
@@ -44,11 +44,11 @@ public class ConfigWriterTestCase {
         final String fileContents = Files
                 .readString(tempDir.toPath().resolve(ConfigWriter.SASHIMONO_DIR).resolve(ConfigWriter.DEPENDENCIES_LIST));
         final String expected = """
-                        artifact com.acme:foo:1.0
-                        packaging jar
-                        require org.apache.httpcomponents:httpclient:4.5.14
-                        require org.hibernate.orm:hibernate-core:6.4.4.Final
-                        """.replaceAll("\n", System.lineSeparator());
+                artifact com.acme:foo:1.0
+                packaging jar
+                require org.apache.httpcomponents:httpclient:4.5.14
+                require org.hibernate.orm:hibernate-core:6.4.4.Final
+                """.replaceAll("\n", System.lineSeparator());
         Assertions.assertEquals(expected, fileContents);
     }
 
