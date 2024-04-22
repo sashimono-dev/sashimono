@@ -7,7 +7,11 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
@@ -43,22 +47,34 @@ public class JarTask implements Function<TaskMap, JarResult> {
         }
         parentDir = parentDir.resolve(gav.artifact());
         parentDir = parentDir.resolve(gav.version());
+        List<Path> toJar = new ArrayList<>();
         try {
+            Files.walkFileTree(deps.classesDirectory(), new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    toJar.add(file);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+            toJar.sort(Comparator.comparing(Object::toString));
             Files.createDirectories(parentDir);
             Path target = parentDir.resolve(gav.artifact() + "-" + gav.version() + ".jar");
             try (JarOutputStream out = new JarOutputStream(Files.newOutputStream(target))) {
-                Files.walkFileTree(deps.classesDirectory(), new SimpleFileVisitor<>() {
+                toJar.forEach(new Consumer<Path>() {
                     @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        String entryName = deps.classesDirectory().relativize(file).toString();
-                        ZipEntry entry = new ZipEntry(entryName);
-                        entry.setCreationTime(FileTime.fromMillis(0));
-                        entry.setSize(Files.size(file));
-                        entry.setLastAccessTime(FileTime.fromMillis(0));
-                        entry.setLastModifiedTime(FileTime.fromMillis(0));
-                        out.putNextEntry(entry);
-                        out.write(Files.readAllBytes(file));
-                        return FileVisitResult.CONTINUE;
+                    public void accept(Path file) {
+                        try {
+                            String entryName = deps.classesDirectory().relativize(file).toString();
+                            ZipEntry entry = new ZipEntry(entryName);
+                            entry.setCreationTime(FileTime.fromMillis(0));
+                            entry.setSize(Files.size(file));
+                            entry.setLastAccessTime(FileTime.fromMillis(0));
+                            entry.setLastModifiedTime(FileTime.fromMillis(0));
+                            out.putNextEntry(entry);
+                            out.write(Files.readAllBytes(file));
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                 });
             }
