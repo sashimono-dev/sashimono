@@ -3,22 +3,19 @@ package dev.sashimono.builder.complete;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.jar.JarFile;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import dev.sashimono.builder.Sashimono;
+import dev.sashimono.builder.test.BuildResult;
+import dev.sashimono.builder.test.BuildTest;
 
 public class BuildProjectTestCase {
 
-    @Test
-    public void testBuildingSimpleProject(@TempDir Path output) throws IOException {
-        Path project = Paths.get("src/test/resources/simple-project");
-        Sashimono.builder().setProjectRoot(project).setOutputDir(output).build().buildProject();
-        Path jar = output.resolve("com").resolve("foo").resolve("test").resolve("1.1.0.Final").resolve("test-1.1.0.Final.jar");
+    @BuildTest("src/test/resources/simple-project")
+    public void testBuildingSimpleProject(BuildResult result) throws IOException {
+        Path jar = result.output().resolve("com").resolve("foo").resolve("test").resolve("1.1.0.Final")
+                .resolve("test-1.1.0.Final.jar");
         Assertions.assertTrue(Files.exists(jar));
 
         try (JarFile jarFile = new JarFile(jar.toFile())) {
@@ -29,11 +26,9 @@ public class BuildProjectTestCase {
         }
     }
 
-    @Test
-    public void testBuildingMultiModuleProject(@TempDir Path output) throws IOException {
-        Path project = Paths.get("src/test/resources/multi-module-project");
-        Sashimono.builder().setProjectRoot(project).setOutputDir(output).build().buildProject();
-        Path jar = output.resolve("com").resolve("acme").resolve("foo").resolve("1.0").resolve("foo-1.0.jar");
+    @BuildTest("src/test/resources/multi-module-project")
+    public void testBuildingMultiModuleProject(BuildResult result) throws IOException {
+        Path jar = result.output().resolve("com").resolve("acme").resolve("foo").resolve("1.0").resolve("foo-1.0.jar");
         Assertions.assertTrue(Files.exists(jar));
 
         try (JarFile jarFile = new JarFile(jar.toFile())) {
@@ -43,7 +38,7 @@ public class BuildProjectTestCase {
             Assertions.assertEquals(0, main.getLastModifiedTime().toMillis());
         }
 
-        jar = output.resolve("com").resolve("acme").resolve("bar").resolve("1.0").resolve("bar-1.0.jar");
+        jar = result.output().resolve("com").resolve("acme").resolve("bar").resolve("1.0").resolve("bar-1.0.jar");
         Assertions.assertTrue(Files.exists(jar));
 
         try (JarFile jarFile = new JarFile(jar.toFile())) {

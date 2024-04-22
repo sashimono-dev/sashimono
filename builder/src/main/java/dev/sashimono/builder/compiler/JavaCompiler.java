@@ -9,10 +9,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.tools.Diagnostic;
@@ -54,7 +54,7 @@ public class JavaCompiler {
         StandardJavaFileManager fileManager = compiler.getStandardFileManager((DiagnosticListener) null, (Locale) null,
                 StandardCharsets.UTF_8);
 
-        Set<File> sourceFiles = new HashSet<>();
+        List<File> sourceFiles = new ArrayList<>();
         sourceDirectories.forEach(s -> {
             try {
                 Files.walkFileTree(s, new SimpleFileVisitor<>() {
@@ -71,6 +71,8 @@ public class JavaCompiler {
                 throw new RuntimeException(e);
             }
         });
+        //we sort the source files to help with reproducibility
+        sourceFiles.sort(Comparator.comparing(Object::toString));
         try {
             var output = Files.createTempDirectory("output");
             fileManager.setLocation(StandardLocation.CLASS_PATH,
