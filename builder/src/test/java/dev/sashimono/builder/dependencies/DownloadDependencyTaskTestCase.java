@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.net.http.HttpClient;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ public class DownloadDependencyTaskTestCase {
     @Test
     public void testDownloadDependency() throws Exception {
         var task = new DownloadDependencyTask(GIZMO, CENTRAL, HttpClient.newBuilder().build());
-        var result = task.apply(new TaskMap(List.of()));
+        var result = task.apply(new TaskMap(List.of(), Map.of()));
         Assertions.assertTrue(Files.exists(result.path()));
         try (InputStream inputStream = Files.newInputStream(result.path())) {
             Assertions.assertEquals(HashUtil.md5(inputStream), MD5);
@@ -38,7 +39,7 @@ public class DownloadDependencyTaskTestCase {
         var task = new DownloadDependencyTask(new Dependency(new GAV("io.quarkus.fake", "fake", "1.8.0"), "jar"), CENTRAL,
                 HttpClient.newBuilder().build());
         Assertions.assertThrows(RuntimeException.class, () -> {
-            task.apply(new TaskMap(List.of()));
+            task.apply(new TaskMap(List.of(), Map.of()));
         });
     }
 

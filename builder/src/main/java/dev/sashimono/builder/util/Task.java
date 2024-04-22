@@ -80,7 +80,7 @@ public final class Task<T> {
 
     void run() {
         try {
-            var result = task.apply(new TaskMap(dependencies));
+            var result = task.apply(new TaskMap(dependencies, taskRunner.resultMappers));
             state = new ObjectState<>(State.COMPLETE, null, result);
             for (var i : dependants) {
                 i.outstanding.decrementAndGet();

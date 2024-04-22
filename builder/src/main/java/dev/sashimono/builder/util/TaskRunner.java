@@ -1,7 +1,9 @@
 package dev.sashimono.builder.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -24,6 +26,8 @@ public class TaskRunner {
 
     private volatile CountDownLatch latch;
 
+    final Map<Class<?>, List<ResultMapper>> resultMappers = new HashMap<>();
+
     public <T> Task<T> newTask(Class<T> type, Function<TaskMap, T> task) {
         Task<T> ret = new Task<>(this, type, task, false);
         tasks.add(ret);
@@ -34,6 +38,13 @@ public class TaskRunner {
         Task<T> ret = new Task<>(this, type, task, true);
         tasks.add(ret);
         return ret;
+    }
+
+    public <F, T> void addResultMapper(Class<F> from, ResultMapper<F, T> mapper) {
+        if (started) {
+            throw new IllegalStateException("already started");
+        }
+        resultMappers.computeIfAbsent(from, (s) -> new ArrayList<>()).add(mapper);
     }
 
     public void run() {
