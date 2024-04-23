@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 import dev.sashimono.builder.compiler.CompileResult;
 import dev.sashimono.builder.compiler.JavaCompilerTask;
@@ -19,6 +18,7 @@ import dev.sashimono.builder.config.Repository;
 import dev.sashimono.builder.config.RepositoryConfig;
 import dev.sashimono.builder.dependencies.DownloadDependencyTask;
 import dev.sashimono.builder.dependencies.ResolvedDependency;
+import dev.sashimono.builder.jar.DigestTask;
 import dev.sashimono.builder.jar.JarResult;
 import dev.sashimono.builder.jar.JarTask;
 import dev.sashimono.builder.util.Task;
@@ -41,23 +41,18 @@ public class Sashimono {
         ProjectConfig config = ConfigReader.readConfig(projectRoot);
         TaskRunner runner = new TaskRunner();
         HttpClient httpClient = HttpClient.newHttpClient();
-        Map<Dependency, Task<ResolvedDependency>> depTasks = new HashMap<>();
+        Map<Dependency, Task<?>> depTasks = new HashMap<>();
 
         Map<GAV, Task<JarResult>> jarTasks = new HashMap<>();
+        runner.addResultMapper(JarResult.class, JarResult.RESOLVED_DEPENDENCY_MAPPER);
+        runner.addResultMapper(JarResult.class, JarResult.FILE_OUTPUT_MAPPER);
+        Task<Void> digestTask = runner.newTask(Void.class, new DigestTask());
         //first we need to figure out what we are building locally, so we don't try and download it
         for (var m : config.moduleConfigs()) {
             if (m.packaging().equals(JAR)) {
                 Task<JarResult> jarTask = runner.newTask(JarResult.class, new JarTask(outputDir, m.gav()));
-
-                //this task allows us to treat compiled jar files the same as downloaded dependencies
-                //it just maps between the two types
-                Task<ResolvedDependency> jarAsDependency = runner.newTask(ResolvedDependency.class, t -> {
-                    var jar = t.results(JarResult.class).get(0);
-                    return new ResolvedDependency(jar.result().dependency(), jar.result().path(), Optional.empty());
-                });
-                jarAsDependency.addDependency(jarTask);
                 jarTasks.put(m.gav(), jarTask);
-                depTasks.put(new Dependency(m.gav(), JAR), jarAsDependency);
+                depTasks.put(new Dependency(m.gav(), JAR), jarTask);
             }
         }
         for (var m : config.moduleConfigs()) {
@@ -65,7 +60,7 @@ public class Sashimono {
             //download dependencies
             for (var i : m.dependencies()) {
 
-                Task<ResolvedDependency> downloadTask;
+                Task<?> downloadTask;
                 if (depTasks.containsKey(i)) {
                     //already queued for download, or locally built. We don't want to download things twice
                     downloadTask = depTasks.get(i);
@@ -90,6 +85,7 @@ public class Sashimono {
                 }
                 Task<JarResult> jarTask = jarTasks.get(m.gav());
                 jarTask.addDependency(compileTask);
+                digestTask.addDependency(jarTask);
             }
         }
         runner.run();
