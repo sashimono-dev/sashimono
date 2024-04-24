@@ -1,6 +1,7 @@
 package dev.sashimono.builder.util;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 public class TaskRunnerTestCase {
@@ -23,7 +24,18 @@ public class TaskRunnerTestCase {
         world.addDependency(task);
         t.run();
         Assertions.assertEquals("Hello Task World", world.value());
+    }
 
+    @RepeatedTest(100)
+    public void testStableDependencyOrder() {
+        TaskRunner t = new TaskRunner();
+        Task<String> hello = t.newTask(String.class, (m) -> "Hello");
+        Task<String> task = t.newTask(String.class, (m) -> "Stable");
+        Task<String> world = t.newTask(String.class, (m) -> String.join(" ", m.results(String.class)) + " World");
+        world.addDependency(hello);
+        world.addDependency(task);
+        t.run();
+        Assertions.assertEquals("Hello Stable World", world.value());
     }
 
 }

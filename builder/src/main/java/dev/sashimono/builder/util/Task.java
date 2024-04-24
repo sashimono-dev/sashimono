@@ -1,6 +1,8 @@
 package dev.sashimono.builder.util;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
@@ -17,7 +19,7 @@ public final class Task<T> {
     private final Function<TaskMap, T> task;
 
     private final boolean background;
-    private final Set<Task<?>> dependencies = new HashSet<>();
+    private final List<Task<?>> dependencies = new ArrayList<>();
     private final Set<Task<?>> dependants = new HashSet<>();
 
     private final AtomicInteger outstanding = new AtomicInteger();
