@@ -1,11 +1,8 @@
 package dev.sashimono.builder.jar;
 
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -20,21 +17,24 @@ import dev.sashimono.builder.compiler.CompileResult;
 import dev.sashimono.builder.config.Dependency;
 import dev.sashimono.builder.config.GAV;
 import dev.sashimono.builder.dependencies.ResolvedDependency;
+import dev.sashimono.builder.util.FileUtil;
 import dev.sashimono.builder.util.Log;
 import dev.sashimono.builder.util.TaskMap;
 
 /**
- * Creates a jar file from compiled class files.
+ * Creates a jar file from compiled class files and optionally prefiltered resource files from Maven.
  */
 public class JarTask implements Function<TaskMap, JarResult> {
 
     private static final Log log = Log.of(JarTask.class);
     private final Path outputDir;
     private final GAV gav;
+    private final Path filteredResourcesDir;
 
-    public JarTask(Path outputDir, GAV gav) {
+    public JarTask(Path outputDir, GAV gav, Path filteredResourcesDir) {
         this.outputDir = outputDir;
         this.gav = gav;
+        this.filteredResourcesDir = filteredResourcesDir;
     }
 
     @Override
@@ -49,13 +49,10 @@ public class JarTask implements Function<TaskMap, JarResult> {
         parentDir = parentDir.resolve(gav.version());
         List<Path> toJar = new ArrayList<>();
         try {
-            Files.walkFileTree(deps.classesDirectory(), new SimpleFileVisitor<>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    toJar.add(file);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
+            FileUtil.collectFiles(deps.classesDirectory(), toJar);
+            if (filteredResourcesDir != null) {
+                FileUtil.collectFiles(filteredResourcesDir, toJar);
+            }
             toJar.sort(Comparator.comparing(Object::toString));
             Files.createDirectories(parentDir);
             Path target = parentDir.resolve(gav.artifact() + "-" + gav.version() + ".jar");
@@ -64,7 +61,12 @@ public class JarTask implements Function<TaskMap, JarResult> {
                     @Override
                     public void accept(Path file) {
                         try {
-                            String entryName = deps.classesDirectory().relativize(file).toString();
+                            String entryName;
+                            if (file.getFileName().toString().endsWith(".class")) {
+                                entryName = deps.classesDirectory().relativize(file).toString();
+                            } else {
+                                entryName = filteredResourcesDir.relativize(file).toString();
+                            }
                             ZipEntry entry = new ZipEntry(entryName);
                             entry.setCreationTime(FileTime.fromMillis(0));
                             entry.setSize(Files.size(file));
