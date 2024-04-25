@@ -12,6 +12,8 @@ public class ConfigReaderTestCase {
     public void testConfigReader() {
         Path project = Paths.get("src/test/resources/simple-project");
         ProjectConfig config = ConfigReader.readConfig(project);
+        Assertions.assertEquals(project.resolve(ConfigReader.SASHIMONO_DIR).resolve(ConfigReader.RESOURCES),
+                config.filteredResourcesDir());
         Assertions.assertEquals(1, config.moduleConfigs().size());
         var module = config.moduleConfigs().get(0);
         Assertions.assertEquals(1, module.dependencies().size());

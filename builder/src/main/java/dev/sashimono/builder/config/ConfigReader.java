@@ -23,6 +23,8 @@ public class ConfigReader {
     public static final String MODULE = "module ";
     public static final String PACKAGING = "packaging ";
     public static final String JAR = "jar";
+    public static final String FILTERED_RESOURCES = "filtered_resources ";
+    public static final String RESOURCES = "resources";
 
     public static ProjectConfig readConfig(Path root) {
 
@@ -30,6 +32,7 @@ public class ConfigReader {
         Set<Path> toProcess = new HashSet<>();
         toProcess.add(root);
         List<ModuleConfig> moduleConfigs = new ArrayList<>();
+        Path filteredResourcesDir = null;
         try {
             while (!toProcess.isEmpty()) {
                 Iterator<Path> iterator = toProcess.iterator();
@@ -39,7 +42,8 @@ public class ConfigReader {
                     continue;
                 }
                 processed.add(project);
-                var result = project.resolve(SASHIMONO_DIR).resolve(DEPENDENCIES_LIST);
+                var sashimonoDir = project.resolve(SASHIMONO_DIR);
+                var result = sashimonoDir.resolve(DEPENDENCIES_LIST);
                 var lines = Files.readAllLines(result);
                 //TODO: this is all a bit hacky
                 List<Dependency> deps = new ArrayList<>();
@@ -76,6 +80,9 @@ public class ConfigReader {
                                 throw new RuntimeException("packaging directive specified twice");
                             }
                             packaging = i.substring(PACKAGING.length());
+                        } else if (i.startsWith(FILTERED_RESOURCES)) {
+                            var val = i.substring(FILTERED_RESOURCES.length());
+                            filteredResourcesDir = Boolean.parseBoolean(val) ? sashimonoDir.resolve(RESOURCES) : null;
                         } else {
                             throw new RuntimeException("error parsing dependencies file: " + i);
                         }
@@ -86,9 +93,10 @@ public class ConfigReader {
                 if (gav == null) {
                     throw new RuntimeException("artifact directive not specified");
                 }
+                // Root will also get added as a module here
                 moduleConfigs.add(new ModuleConfig(gav, packaging, deps, List.of(project.resolve("src/main/java"))));
             }
-            return new ProjectConfig(root, moduleConfigs);
+            return new ProjectConfig(root, moduleConfigs, filteredResourcesDir);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

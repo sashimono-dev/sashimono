@@ -16,12 +16,14 @@ import dev.sashimono.mavenplugin.config.ConfigWriter;
 
 public class ConfigWriterTestCase {
 
+    public static final String NEW_LINE = "\n";
+
     @Test
     public void testMultiModuleConfigWriter(@TempDir final File tempDir) throws IOException {
         final Model model = createModel(List.of("foo", "bar"));
         final List<Dependency> dependencies = createDependencies();
         final MavenProject project = createProject(model, dependencies, tempDir);
-        ConfigWriter.writeConfig(project);
+        ConfigWriter.writeConfig(project, true);
         final String fileContents = Files
                 .readString(tempDir.toPath().resolve(ConfigWriter.SASHIMONO_DIR).resolve(ConfigWriter.DEPENDENCIES_LIST));
         final String expected = """
@@ -31,7 +33,8 @@ public class ConfigWriterTestCase {
                 module bar
                 require org.apache.httpcomponents:httpclient:4.5.14
                 require org.hibernate.orm:hibernate-core:6.4.4.Final
-                """.replaceAll("\n", System.lineSeparator());
+                filtered_resources true
+                """.replaceAll(NEW_LINE, System.lineSeparator());
         Assertions.assertEquals(expected, fileContents);
     }
 
@@ -40,7 +43,7 @@ public class ConfigWriterTestCase {
         final Model model = createModel("foo", "jar");
         final List<Dependency> dependencies = createDependencies();
         final MavenProject project = createProject(model, dependencies, tempDir);
-        ConfigWriter.writeConfig(project);
+        ConfigWriter.writeConfig(project, false);
         final String fileContents = Files
                 .readString(tempDir.toPath().resolve(ConfigWriter.SASHIMONO_DIR).resolve(ConfigWriter.DEPENDENCIES_LIST));
         final String expected = """
@@ -48,7 +51,8 @@ public class ConfigWriterTestCase {
                 packaging jar
                 require org.apache.httpcomponents:httpclient:4.5.14
                 require org.hibernate.orm:hibernate-core:6.4.4.Final
-                """.replaceAll("\n", System.lineSeparator());
+                filtered_resources false
+                """.replaceAll(NEW_LINE, System.lineSeparator());
         Assertions.assertEquals(expected, fileContents);
     }
 

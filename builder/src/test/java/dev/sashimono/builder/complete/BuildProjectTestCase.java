@@ -1,6 +1,7 @@
 package dev.sashimono.builder.complete;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.jar.JarFile;
@@ -23,6 +24,15 @@ public class BuildProjectTestCase {
             Assertions.assertNotNull(main);
             Assertions.assertTrue(main.getSize() > 100);
             Assertions.assertEquals(0, main.getLastModifiedTime().toMillis());
+            var applicationProperties = jarFile.getJarEntry("config/application.properties");
+            Assertions.assertNotNull(applicationProperties);
+            String expectedAppPropsContents = """
+                    greeting.message = hello
+                    greeting.name = quarkus""".replaceAll("\n", System.lineSeparator());
+            String appPropsContents = new String(jarFile.getInputStream(applicationProperties).readAllBytes(),
+                    StandardCharsets.UTF_8);
+            Assertions.assertEquals(expectedAppPropsContents, appPropsContents);
+            Assertions.assertEquals(0, applicationProperties.getLastModifiedTime().toMillis());
         }
     }
 

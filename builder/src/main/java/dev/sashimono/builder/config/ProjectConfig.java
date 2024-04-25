@@ -8,7 +8,8 @@ import java.util.List;
  *
  * @param projectRoot The root of the project
  * @param moduleConfigs The individual module configs
+ * @param filteredResourcesDir Optional directory containing non .class resources prefiltered by Maven
  */
-public record ProjectConfig(Path projectRoot, List<ModuleConfig> moduleConfigs) {
+public record ProjectConfig(Path projectRoot, List<ModuleConfig> moduleConfigs, Path filteredResourcesDir) {
 
 }

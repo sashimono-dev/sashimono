@@ -50,7 +50,8 @@ public class Sashimono {
         //first we need to figure out what we are building locally, so we don't try and download it
         for (var m : config.moduleConfigs()) {
             if (m.packaging().equals(JAR)) {
-                Task<JarResult> jarTask = runner.newTask(JarResult.class, new JarTask(outputDir, m.gav()));
+                Task<JarResult> jarTask = runner.newTask(JarResult.class,
+                        new JarTask(outputDir, m.gav(), config.filteredResourcesDir()));
                 jarTasks.put(m.gav(), jarTask);
                 depTasks.put(new Dependency(m.gav(), JAR), jarTask);
             }
