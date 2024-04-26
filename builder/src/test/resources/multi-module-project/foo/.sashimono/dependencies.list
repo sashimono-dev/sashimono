@@ -1,4 +1,4 @@
 
 artifact com.acme:foo:1.0
 packaging jar
-
+source src/main/java

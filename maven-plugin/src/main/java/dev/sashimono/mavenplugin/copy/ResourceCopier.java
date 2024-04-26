@@ -20,12 +20,12 @@ import org.apache.maven.project.MavenProject;
  */
 public class ResourceCopier {
 
-    public static final String RESOURCES = "resources";
+    public static final String RESOURCES_DIR = "resources";
     public static final String CLASS_EXT = ".class";
 
     public static boolean copyResources(final MavenProject project, final File buildOutputDirectory) {
         final AtomicBoolean resourcesCopied = new AtomicBoolean(false);
-        final Path destDirPath = project.getBasedir().toPath().resolve(SASHIMONO_DIR + File.separator + RESOURCES);
+        final Path destDirPath = project.getBasedir().toPath().resolve(SASHIMONO_DIR + File.separator + RESOURCES_DIR);
         final Path resourcePath = buildOutputDirectory.toPath();
         try {
             final String resourcePathStr = resourcePath.toString();

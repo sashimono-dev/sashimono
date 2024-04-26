@@ -1,5 +1,8 @@
 package config;
 
+import static dev.sashimono.mavenplugin.config.ConfigWriter.SASHIMONO_DIR;
+import static dev.sashimono.mavenplugin.copy.ResourceCopier.RESOURCES_DIR;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,7 +17,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import dev.sashimono.mavenplugin.config.ConfigWriter;
 import dev.sashimono.mavenplugin.copy.ResourceCopier;
 
 public class ResourceCopierTestCase {
@@ -31,7 +33,7 @@ public class ResourceCopierTestCase {
         final MavenProject project = new MavenProject(model);
         project.setFile(tempDir.toPath().resolve("pom.xml").toFile());
         ResourceCopier.copyResources(project, buildDir);
-        final Path resourcesPath = tempDir.toPath().resolve(ConfigWriter.SASHIMONO_DIR).resolve(ResourceCopier.RESOURCES);
+        final Path resourcesPath = tempDir.toPath().resolve(SASHIMONO_DIR).resolve(RESOURCES_DIR);
         final String fileContents = Files
                 .readString(resourcesPath.resolve("config/application.properties"));
         final String expected = """

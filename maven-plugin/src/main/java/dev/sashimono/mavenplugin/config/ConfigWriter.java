@@ -23,9 +23,11 @@ public class ConfigWriter {
     public static final String PACKAGING = "packaging ";
     public static final String MODULE = "module ";
     public static final String FILTERED_RESOURCES = "filtered_resources ";
+    public static final String SOURCE = "source ";
 
     public static void writeConfig(final MavenProject project, final boolean resourcesCopied) {
-        final Path dirPath = project.getBasedir().toPath().resolve(SASHIMONO_DIR);
+        final Path baseDirPath = project.getBasedir().toPath();
+        final Path dirPath = baseDirPath.resolve(SASHIMONO_DIR);
         final Path filePath = dirPath.resolve(DEPENDENCIES_LIST);
         try {
             // Make sure directories already exist
@@ -48,6 +50,9 @@ public class ConfigWriter {
                     }
                 }
                 writer.write(FILTERED_RESOURCES + resourcesCopied + System.lineSeparator());
+                for (final String srcPath : project.getCompileSourceRoots()) {
+                    writer.write(SOURCE + baseDirPath.relativize(Path.of(srcPath)) + System.lineSeparator());
+                }
             }
         } catch (final IOException e) {
             throw new RuntimeException(e);
