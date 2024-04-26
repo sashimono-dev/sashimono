@@ -24,7 +24,8 @@ public class ConfigReader {
     public static final String PACKAGING = "packaging ";
     public static final String JAR = "jar";
     public static final String FILTERED_RESOURCES = "filtered_resources ";
-    public static final String RESOURCES = "resources";
+    public static final String RESOURCES_DIR = "resources";
+    public static final String SOURCE = "source ";
 
     public static ProjectConfig readConfig(Path root) {
 
@@ -47,6 +48,7 @@ public class ConfigReader {
                 var lines = Files.readAllLines(result);
                 //TODO: this is all a bit hacky
                 List<Dependency> deps = new ArrayList<>();
+                List<Path> sourceDirs = new ArrayList<>();
                 GAV gav = null;
                 String packaging = null;
                 var lineNo = 0;
@@ -82,7 +84,10 @@ public class ConfigReader {
                             packaging = i.substring(PACKAGING.length());
                         } else if (i.startsWith(FILTERED_RESOURCES)) {
                             var val = i.substring(FILTERED_RESOURCES.length());
-                            filteredResourcesDir = Boolean.parseBoolean(val) ? sashimonoDir.resolve(RESOURCES) : null;
+                            filteredResourcesDir = Boolean.parseBoolean(val) ? sashimonoDir.resolve(RESOURCES_DIR) : null;
+                        } else if (i.startsWith(SOURCE)) {
+                            var val = i.substring(SOURCE.length());
+                            sourceDirs.add(project.resolve(val));
                         } else {
                             throw new RuntimeException("error parsing dependencies file: " + i);
                         }
@@ -94,7 +99,7 @@ public class ConfigReader {
                     throw new RuntimeException("artifact directive not specified");
                 }
                 // Root will also get added as a module here
-                moduleConfigs.add(new ModuleConfig(gav, packaging, deps, List.of(project.resolve("src/main/java"))));
+                moduleConfigs.add(new ModuleConfig(gav, packaging, deps, sourceDirs));
             }
             return new ProjectConfig(root, moduleConfigs, filteredResourcesDir);
         } catch (IOException e) {

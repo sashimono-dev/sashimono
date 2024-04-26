@@ -1,5 +1,8 @@
 package config;
 
+import static dev.sashimono.mavenplugin.config.ConfigWriter.DEPENDENCIES_LIST;
+import static dev.sashimono.mavenplugin.config.ConfigWriter.SASHIMONO_DIR;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,7 +28,7 @@ public class ConfigWriterTestCase {
         final MavenProject project = createProject(model, dependencies, tempDir);
         ConfigWriter.writeConfig(project, true);
         final String fileContents = Files
-                .readString(tempDir.toPath().resolve(ConfigWriter.SASHIMONO_DIR).resolve(ConfigWriter.DEPENDENCIES_LIST));
+                .readString(tempDir.toPath().resolve(SASHIMONO_DIR).resolve(DEPENDENCIES_LIST));
         final String expected = """
                 artifact com.acme:parent:1.0
                 packaging pom
@@ -34,6 +37,7 @@ public class ConfigWriterTestCase {
                 require org.apache.httpcomponents:httpclient:4.5.14
                 require org.hibernate.orm:hibernate-core:6.4.4.Final
                 filtered_resources true
+                source src/main/java
                 """.replaceAll(NEW_LINE, System.lineSeparator());
         Assertions.assertEquals(expected, fileContents);
     }
@@ -45,13 +49,14 @@ public class ConfigWriterTestCase {
         final MavenProject project = createProject(model, dependencies, tempDir);
         ConfigWriter.writeConfig(project, false);
         final String fileContents = Files
-                .readString(tempDir.toPath().resolve(ConfigWriter.SASHIMONO_DIR).resolve(ConfigWriter.DEPENDENCIES_LIST));
+                .readString(tempDir.toPath().resolve(SASHIMONO_DIR).resolve(DEPENDENCIES_LIST));
         final String expected = """
                 artifact com.acme:foo:1.0
                 packaging jar
                 require org.apache.httpcomponents:httpclient:4.5.14
                 require org.hibernate.orm:hibernate-core:6.4.4.Final
                 filtered_resources false
+                source src/main/java
                 """.replaceAll(NEW_LINE, System.lineSeparator());
         Assertions.assertEquals(expected, fileContents);
     }
@@ -75,6 +80,7 @@ public class ConfigWriterTestCase {
         final MavenProject project = new MavenProject(model);
         project.setFile(tempDir.toPath().resolve("pom.xml").toFile());
         project.setDependencies(dependencies);
+        project.addCompileSourceRoot(tempDir.toPath().resolve("src/main/java").toString());
         return project;
     }
 

@@ -25,7 +25,6 @@ public class SashimonoMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
         final boolean resourcesCopied = ResourceCopier.copyResources(project, outputDirectory);
         ConfigWriter.writeConfig(project, resourcesCopied);
-
     }
 
 }

@@ -3,3 +3,4 @@ artifact com.acme:bar:1.0
 packaging jar
 
 require com.acme:foo:1.0
+source src/main/java
