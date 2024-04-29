@@ -4,16 +4,24 @@ import java.io.File;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.DefaultProjectBuildingRequest;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.ProjectBuilder;
+import org.apache.maven.project.ProjectBuildingException;
+import org.apache.maven.project.ProjectBuildingRequest;
+import org.apache.maven.project.ProjectBuildingResult;
+import org.eclipse.aether.graph.Dependency;
 
 import dev.sashimono.mavenplugin.config.ConfigWriter;
 import dev.sashimono.mavenplugin.copy.ResourceCopier;
@@ -46,6 +54,9 @@ public class SashimonoMojo extends AbstractMojo {
     @Parameter(defaultValue = "${mojoExecution}", readonly = true, required = true)
     MojoExecution mojoExecution;
 
+    @Component
+    ProjectBuilder projectBuilder;
+
     @Override
     public void execute() throws MojoExecutionException {
         if (Objects.equals(MAVEN_PROJECT, project.getPackaging())) {
@@ -53,7 +64,23 @@ public class SashimonoMojo extends AbstractMojo {
             project.setPackaging("jar");
         }
         final boolean resourcesCopied = ResourceCopier.copyResources(project, outputDirectory);
-        ConfigWriter.writeConfig(project, resourcesCopied);
+
+        Supplier<List<Dependency>> dependencySupplier = new Supplier<List<Dependency>>() {
+            @Override
+            public List<Dependency> get() {
+                ProjectBuildingRequest buildingRequest = new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
+                buildingRequest.setResolveDependencies(true);
+                buildingRequest.setProject(project);
+                try {
+                    ProjectBuildingResult result = projectBuilder.build(project.getFile(), buildingRequest);
+                    return result.getDependencyResolutionResult().getDependencies();
+                } catch (ProjectBuildingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+
+        ConfigWriter.writeConfig(project, resourcesCopied, dependencySupplier);
     }
 
     /**
