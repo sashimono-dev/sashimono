@@ -24,30 +24,36 @@ public class ResourceCopier {
     public static final String CLASS_EXT = ".class";
 
     public static boolean copyResources(final MavenProject project, final File buildOutputDirectory) {
-        final AtomicBoolean resourcesCopied = new AtomicBoolean(false);
         final Path destDirPath = project.getBasedir().toPath().resolve(SASHIMONO_DIR + File.separator + RESOURCES_DIR);
         final Path resourcePath = buildOutputDirectory.toPath();
         try {
-            final String resourcePathStr = resourcePath.toString();
-            Files.walkFileTree(resourcePath, new SimpleFileVisitor<>() {
-                @Override
-                public FileVisitResult visitFile(final Path filePath, final BasicFileAttributes attrs)
-                        throws IOException {
-                    if (!filePath.getFileName().toString().endsWith(CLASS_EXT)) {
-                        final String subPath = filePath.toString().substring(resourcePathStr.length() + 1);
-                        final Path destFilePath = destDirPath.resolve(subPath);
-                        // Make sure directories already exist
-                        Files.createDirectories(destFilePath.getParent());
-                        Files.copy(filePath, destFilePath, StandardCopyOption.REPLACE_EXISTING);
-                        resourcesCopied.set(true);
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-
-            });
+            return copyResources(resourcePath, destDirPath);
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static boolean copyResources(Path resourcePath, Path destDirPath) throws IOException {
+        if (!Files.exists(resourcePath)) {
+            return false;
+        }
+        final AtomicBoolean resourcesCopied = new AtomicBoolean(false);
+        Files.walkFileTree(resourcePath, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(final Path filePath, final BasicFileAttributes attrs)
+                    throws IOException {
+                if (!filePath.getFileName().toString().endsWith(CLASS_EXT)) {
+                    final Path subPath = resourcePath.relativize(filePath);
+                    final Path destFilePath = destDirPath.resolve(subPath);
+                    // Make sure directories already exist
+                    Files.createDirectories(destFilePath.getParent());
+                    Files.copy(filePath, destFilePath, StandardCopyOption.REPLACE_EXISTING);
+                    resourcesCopied.set(true);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+        });
         return resourcesCopied.get();
     }
 }
