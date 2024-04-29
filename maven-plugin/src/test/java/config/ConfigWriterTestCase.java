@@ -11,6 +11,7 @@ import java.util.List;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.artifact.DefaultArtifact;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -26,7 +27,11 @@ public class ConfigWriterTestCase {
         final Model model = createModel(List.of("foo", "bar"));
         final List<Dependency> dependencies = createDependencies();
         final MavenProject project = createProject(model, dependencies, tempDir);
-        ConfigWriter.writeConfig(project, true);
+        ConfigWriter.writeConfig(project, true, () -> List.of(
+                new org.eclipse.aether.graph.Dependency(new DefaultArtifact("org.apache.httpcomponents:httpclient:4.5.14"),
+                        "compile"),
+                new org.eclipse.aether.graph.Dependency(new DefaultArtifact("org.hibernate.orm:hibernate-core:6.4.4.Final"),
+                        "provided")));
         final String fileContents = Files
                 .readString(tempDir.toPath().resolve(SASHIMONO_DIR).resolve(DEPENDENCIES_LIST));
         final String expected = """
@@ -47,7 +52,12 @@ public class ConfigWriterTestCase {
         final Model model = createModel("foo", "jar");
         final List<Dependency> dependencies = createDependencies();
         final MavenProject project = createProject(model, dependencies, tempDir);
-        ConfigWriter.writeConfig(project, false);
+        ConfigWriter.writeConfig(project, false, () -> List.of(
+                new org.eclipse.aether.graph.Dependency(new DefaultArtifact("org.apache.httpcomponents:httpclient:4.5.14"),
+                        "compile"),
+                new org.eclipse.aether.graph.Dependency(new DefaultArtifact("org.hibernate.orm:hibernate-core:6.4.4.Final"),
+                        "provided")));
+
         final String fileContents = Files
                 .readString(tempDir.toPath().resolve(SASHIMONO_DIR).resolve(DEPENDENCIES_LIST));
         final String expected = """
