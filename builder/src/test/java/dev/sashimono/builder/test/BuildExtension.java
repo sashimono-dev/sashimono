@@ -32,20 +32,21 @@ class BuildExtension implements BeforeEachCallback, ParameterResolver {
         //TODO: should this be in some kind of extension system that lets you apply tests to all builds?
 
         try (Stream<Path> pathStream = Files.walk(tempDir)) {
-            pathStream.filter(f -> f.getFileName().toString().endsWith(".jar")).forEach(f -> {
-                try (var in = Files.newInputStream(f)) {
-                    Path md5 = f.getParent().resolve(f.getFileName() + ".md5");
-                    Assertions.assertEquals(Files.readString(md5), HashUtil.md5(in));
-                } catch (Exception e) {
-                    throw new RuntimeException("MD5 match failed for " + f, e);
-                }
-                try (var in = Files.newInputStream(f)) {
-                    Path sha1 = f.getParent().resolve(f.getFileName() + ".sha1");
-                    Assertions.assertEquals(Files.readString(sha1), HashUtil.sha1(in));
-                } catch (IOException e) {
-                    throw new RuntimeException("SHA1 match failed for " + f, e);
-                }
-            });
+            pathStream.filter(f -> f.getFileName().toString().endsWith(".jar") || f.getFileName().toString().endsWith(".xml"))
+                    .forEach(f -> {
+                        try (var in = Files.newInputStream(f)) {
+                            Path md5 = f.getParent().resolve(f.getFileName() + ".md5");
+                            Assertions.assertEquals(Files.readString(md5), HashUtil.md5(in));
+                        } catch (Exception e) {
+                            throw new RuntimeException("MD5 match failed for " + f, e);
+                        }
+                        try (var in = Files.newInputStream(f)) {
+                            Path sha1 = f.getParent().resolve(f.getFileName() + ".sha1");
+                            Assertions.assertEquals(Files.readString(sha1), HashUtil.sha1(in));
+                        } catch (IOException e) {
+                            throw new RuntimeException("SHA1 match failed for " + f, e);
+                        }
+                    });
         }
     }
 

@@ -24,6 +24,7 @@ public class ConfigWriter {
     public static final String MODULE = "module ";
     public static final String FILTERED_RESOURCES = "filtered_resources ";
     public static final String SOURCE = "source ";
+    public static final String POM = "pom ";
 
     public static void writeConfig(final MavenProject project, final boolean resourcesCopied,
             Supplier<List<Dependency>> dependencySupplier) {
@@ -57,6 +58,7 @@ public class ConfigWriter {
                 for (final String srcPath : project.getCompileSourceRoots()) {
                     writer.write(SOURCE + baseDirPath.relativize(Path.of(srcPath)) + System.lineSeparator());
                 }
+                writer.write(POM + baseDirPath.relativize(project.getFile().toPath()) + System.lineSeparator());
             }
         } catch (final Exception e) {
             throw new RuntimeException(e);

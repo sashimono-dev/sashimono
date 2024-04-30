@@ -19,8 +19,10 @@ import dev.sashimono.builder.config.RepositoryConfig;
 import dev.sashimono.builder.dependencies.DownloadDependencyTask;
 import dev.sashimono.builder.dependencies.ResolvedDependency;
 import dev.sashimono.builder.jar.DigestTask;
+import dev.sashimono.builder.jar.FileOutput;
 import dev.sashimono.builder.jar.JarResult;
 import dev.sashimono.builder.jar.JarTask;
+import dev.sashimono.builder.jar.PomTask;
 import dev.sashimono.builder.util.Task;
 import dev.sashimono.builder.util.TaskRunner;
 
@@ -47,13 +49,17 @@ public class Sashimono {
         runner.addResultMapper(JarResult.class, JarResult.RESOLVED_DEPENDENCY_MAPPER);
         runner.addResultMapper(JarResult.class, JarResult.FILE_OUTPUT_MAPPER);
         Task<Void> digestTask = runner.newTask(Void.class, new DigestTask());
+        Map<GAV, Task<FileOutput>> pomTasks = new HashMap<>();
         //first we need to figure out what we are building locally, so we don't try and download it
         for (var m : config.moduleConfigs()) {
             if (m.packaging().equals(JAR)) {
                 Task<JarResult> jarTask = runner.newTask(JarResult.class,
-                        new JarTask(outputDir, m.gav(), config.filteredResourcesDir()));
+                        new JarTask(outputDir, m.gav(), m.filteredResourcesDir()));
                 jarTasks.put(m.gav(), jarTask);
                 depTasks.put(new Dependency(m.gav(), JAR), jarTask);
+                Task<FileOutput> pomTask = runner.newTask(FileOutput.class,
+                        new PomTask(outputDir, m.gav(), m.pomPath()));
+                pomTasks.put(m.gav(), pomTask);
             }
         }
         for (var m : config.moduleConfigs()) {
@@ -87,6 +93,8 @@ public class Sashimono {
                 Task<JarResult> jarTask = jarTasks.get(m.gav());
                 jarTask.addDependency(compileTask);
                 digestTask.addDependency(jarTask);
+                Task<FileOutput> pomTask = pomTasks.get(m.gav());
+                digestTask.addDependency(pomTask);
             }
         }
         runner.run();
