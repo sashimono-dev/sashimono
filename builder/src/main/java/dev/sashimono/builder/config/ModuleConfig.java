@@ -10,6 +10,9 @@ import java.util.List;
  * @param packaging The type of project, currently only jar is supported
  * @param dependencies The project dependencies
  * @param sourceDirectories The source directories to compile
+ * @param filteredResourcesDir Optional directory containing non .class resources prefiltered by Maven
+ * @param pomPath The path of the module POM file
  */
-public record ModuleConfig(GAV gav, String packaging, List<Dependency> dependencies, List<Path> sourceDirectories) {
+public record ModuleConfig(GAV gav, String packaging, List<Dependency> dependencies, List<Path> sourceDirectories,
+        Path filteredResourcesDir, Path pomPath) {
 }

@@ -4,3 +4,4 @@ packaging pom
 
 module foo
 module bar
+pom pom.xml

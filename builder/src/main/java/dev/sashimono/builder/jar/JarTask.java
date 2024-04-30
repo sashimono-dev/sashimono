@@ -40,13 +40,7 @@ public class JarTask implements Function<TaskMap, JarResult> {
     @Override
     public JarResult apply(TaskMap taskMap) {
         var deps = taskMap.results(CompileResult.class).get(0);
-        Path parentDir = outputDir;
-        var groupParts = gav.group().split("\\.");
-        for (var i : groupParts) {
-            parentDir = parentDir.resolve(i);
-        }
-        parentDir = parentDir.resolve(gav.artifact());
-        parentDir = parentDir.resolve(gav.version());
+        Path parentDir = FileUtil.getOutputPath(outputDir, gav);
         List<Path> toJar = new ArrayList<>();
         try {
             FileUtil.collectFiles(deps.classesDirectory(), toJar);

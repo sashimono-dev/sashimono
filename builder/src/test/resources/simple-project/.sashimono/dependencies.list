@@ -6,3 +6,4 @@ packaging jar
 require org.apache.httpcomponents:httpclient:4.5.14 #TODO: checksums
 filtered_resources true
 source src/main/java
+pom pom.xml

@@ -26,6 +26,7 @@ public class ConfigReader {
     public static final String FILTERED_RESOURCES = "filtered_resources ";
     public static final String RESOURCES_DIR = "resources";
     public static final String SOURCE = "source ";
+    public static final String POM = "pom ";
 
     public static ProjectConfig readConfig(Path root) {
 
@@ -33,7 +34,6 @@ public class ConfigReader {
         Set<Path> toProcess = new HashSet<>();
         toProcess.add(root);
         List<ModuleConfig> moduleConfigs = new ArrayList<>();
-        Path filteredResourcesDir = null;
         try {
             while (!toProcess.isEmpty()) {
                 Iterator<Path> iterator = toProcess.iterator();
@@ -51,6 +51,8 @@ public class ConfigReader {
                 List<Path> sourceDirs = new ArrayList<>();
                 GAV gav = null;
                 String packaging = null;
+                Path filteredResourcesDir = null;
+                Path pomPath = null;
                 var lineNo = 0;
                 for (var i : lines) {
                     try {
@@ -88,6 +90,9 @@ public class ConfigReader {
                         } else if (i.startsWith(SOURCE)) {
                             var val = i.substring(SOURCE.length());
                             sourceDirs.add(project.resolve(val));
+                        } else if (i.startsWith(POM)) {
+                            var val = i.substring(POM.length());
+                            pomPath = project.resolve(val);
                         } else {
                             throw new RuntimeException("error parsing dependencies file: " + i);
                         }
@@ -99,9 +104,9 @@ public class ConfigReader {
                     throw new RuntimeException("artifact directive not specified");
                 }
                 // Root will also get added as a module here
-                moduleConfigs.add(new ModuleConfig(gav, packaging, deps, sourceDirs));
+                moduleConfigs.add(new ModuleConfig(gav, packaging, deps, sourceDirs, filteredResourcesDir, pomPath));
             }
-            return new ProjectConfig(root, moduleConfigs, filteredResourcesDir);
+            return new ProjectConfig(root, moduleConfigs);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

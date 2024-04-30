@@ -43,6 +43,7 @@ public class ConfigWriterTestCase {
                 require org.hibernate.orm:hibernate-core:6.4.4.Final
                 filtered_resources true
                 source src/main/java
+                pom pom.xml
                 """.replaceAll(NEW_LINE, System.lineSeparator());
         Assertions.assertEquals(expected, fileContents);
     }
@@ -67,6 +68,7 @@ public class ConfigWriterTestCase {
                 require org.hibernate.orm:hibernate-core:6.4.4.Final
                 filtered_resources false
                 source src/main/java
+                pom pom.xml
                 """.replaceAll(NEW_LINE, System.lineSeparator());
         Assertions.assertEquals(expected, fileContents);
     }
