@@ -6,7 +6,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -27,6 +29,8 @@ public class ConfigReader {
     public static final String RESOURCES_DIR = "resources";
     public static final String SOURCE = "source ";
     public static final String POM = "pom ";
+    public static final String MANIFEST_ENTRY = "manifest_entry ";
+    public static final String DELIMITER = ":";
 
     public static ProjectConfig readConfig(Path root) {
 
@@ -53,6 +57,7 @@ public class ConfigReader {
                 String packaging = null;
                 Path filteredResourcesDir = null;
                 Path pomPath = null;
+                Map<String, String> manifestEntries = new LinkedHashMap<>();
                 var lineNo = 0;
                 for (var i : lines) {
                     try {
@@ -65,7 +70,7 @@ public class ConfigReader {
                         }
                         if (i.startsWith(REQUIRE)) {
                             var dep = i.substring(REQUIRE.length());
-                            var parts = dep.split(":");
+                            var parts = dep.split(DELIMITER);
                             // TODO: error handling and reporting
                             deps.add(new Dependency(new GAV(parts[0], parts[1], parts[2]), JAR));
                         } else if (i.startsWith(ARTIFACT)) {
@@ -73,7 +78,7 @@ public class ConfigReader {
                                 throw new RuntimeException("artifact directive specified twice");
                             }
                             var dep = i.substring(ARTIFACT.length());
-                            var parts = dep.split(":");
+                            var parts = dep.split(DELIMITER);
                             gav = new GAV(parts[0], parts[1], parts[2]);
                         } else if (i.startsWith(MODULE)) {
                             var module = i.substring(MODULE.length());
@@ -93,6 +98,10 @@ public class ConfigReader {
                         } else if (i.startsWith(POM)) {
                             var val = i.substring(POM.length());
                             pomPath = project.resolve(val);
+                        } else if (i.startsWith(MANIFEST_ENTRY)) {
+                            var manifestEntry = i.substring(MANIFEST_ENTRY.length());
+                            var parts = manifestEntry.split(DELIMITER);
+                            manifestEntries.put(parts[0], parts[1]);
                         } else {
                             throw new RuntimeException("error parsing dependencies file: " + i);
                         }
@@ -104,7 +113,8 @@ public class ConfigReader {
                     throw new RuntimeException("artifact directive not specified");
                 }
                 // Root will also get added as a module here
-                moduleConfigs.add(new ModuleConfig(gav, packaging, deps, sourceDirs, filteredResourcesDir, pomPath));
+                moduleConfigs.add(
+                        new ModuleConfig(gav, packaging, deps, sourceDirs, filteredResourcesDir, pomPath, manifestEntries));
             }
             return new ProjectConfig(root, moduleConfigs);
         } catch (IOException e) {

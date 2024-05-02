@@ -1,5 +1,7 @@
 package dev.sashimono.builder.complete;
 
+import static dev.sashimono.builder.jar.JarTask.*;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -37,6 +39,17 @@ public class BuildProjectTestCase {
                     StandardCharsets.UTF_8);
             Assertions.assertEquals(expectedAppPropsContents, appPropsContents);
             Assertions.assertEquals(0, applicationProperties.getLastModifiedTime().toMillis());
+            var manifest = jarFile.getJarEntry("META-INF/MANIFEST.MF");
+            Assertions.assertNotNull(manifest);
+            String expectedManifestContents = """
+                    Main-Class: foo.bar.Main
+                    Build-Tool-Jdk-Spec: %s
+                    """.formatted(System.getProperty(JAVA_SPEC_VERSION)).replaceAll(NEW_LINE,
+                    System.lineSeparator());
+            String manifestContents = new String(jarFile.getInputStream(manifest).readAllBytes(),
+                    StandardCharsets.UTF_8);
+            Assertions.assertEquals(expectedManifestContents, manifestContents);
+            Assertions.assertEquals(0, manifest.getLastModifiedTime().toMillis());
         }
 
         String pomContents = Files.readString(pom);
@@ -81,6 +94,16 @@ public class BuildProjectTestCase {
             Assertions.assertNotNull(main);
             Assertions.assertTrue(main.getSize() > 100);
             Assertions.assertEquals(0, main.getLastModifiedTime().toMillis());
+            var manifest = jarFile.getJarEntry("META-INF/MANIFEST.MF");
+            Assertions.assertNotNull(manifest);
+            String expectedManifestContents = """
+                    Build-Tool-Jdk-Spec: %s
+                    """.formatted(System.getProperty(JAVA_SPEC_VERSION)).replaceAll(NEW_LINE,
+                    System.lineSeparator());
+            String manifestContents = new String(jarFile.getInputStream(manifest).readAllBytes(),
+                    StandardCharsets.UTF_8);
+            Assertions.assertEquals(expectedManifestContents, manifestContents);
+            Assertions.assertEquals(0, manifest.getLastModifiedTime().toMillis());
         }
 
         String pomContents = Files.readString(pom);
@@ -118,6 +141,17 @@ public class BuildProjectTestCase {
             Assertions.assertNotNull(main);
             Assertions.assertTrue(main.getSize() > 100);
             Assertions.assertEquals(0, main.getLastModifiedTime().toMillis());
+            var manifest = jarFile.getJarEntry("META-INF/MANIFEST.MF");
+            Assertions.assertNotNull(manifest);
+            String expectedManifestContents = """
+                    Main-Class: acme.bar.Main
+                    Build-Tool-Jdk-Spec: %s
+                    """.formatted(System.getProperty(JAVA_SPEC_VERSION)).replaceAll(NEW_LINE,
+                    System.lineSeparator());
+            String manifestContents = new String(jarFile.getInputStream(manifest).readAllBytes(),
+                    StandardCharsets.UTF_8);
+            Assertions.assertEquals(expectedManifestContents, manifestContents);
+            Assertions.assertEquals(0, manifest.getLastModifiedTime().toMillis());
         }
 
         pomContents = Files.readString(pom);
