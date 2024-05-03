@@ -33,6 +33,7 @@ public class JarTask implements Function<TaskMap, JarResult> {
     public static final String MANIFEST_MF = "MANIFEST.MF";
     public static final String BUILD_TOOL_JDK_SPEC = "Build-Tool-Jdk-Spec";
     public static final String JAVA_SPEC_VERSION = "java.specification.version";
+    public static final String EOL = "\r\n"; // For consistency across manifests
     private final Path outputDir;
     private final GAV gav;
     private final Path filteredResourcesDir;
@@ -100,9 +101,22 @@ public class JarTask implements Function<TaskMap, JarResult> {
         Files.createDirectories(metaInfDir);
         try (final BufferedWriter writer = Files.newBufferedWriter(manifestPath)) {
             final String delimiter = ": ";
-            for (Map.Entry<String, String> entry : manifestEntries.entrySet()) {
-                writer.write(StringUtil.camelToCapitalisedKebabCase(entry.getKey()) + delimiter + entry.getValue()
-                        + System.lineSeparator());
+            final int max_line_bytes = 72;
+            final int max_line_bytes_less_eol = max_line_bytes - 2;
+            for (final Map.Entry<String, String> entry : manifestEntries.entrySet()) {
+                String line = StringUtil.camelToCapitalisedKebabCase(entry.getKey()) + delimiter + entry.getValue();
+                final StringBuilder toWrite = new StringBuilder();
+                while (line.getBytes().length > max_line_bytes) {
+                    int bytes = max_line_bytes_less_eol;
+                    String newLine = line.substring(0, bytes);
+                    while (newLine.getBytes().length > max_line_bytes && bytes > 0) {
+                        newLine = line.substring(0, --bytes);
+                    }
+                    toWrite.append(newLine).append(EOL);
+                    line = " " + line.substring(bytes);
+                }
+                toWrite.append(line).append(EOL);
+                writer.write(toWrite.toString());
             }
         }
     }

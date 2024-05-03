@@ -45,7 +45,7 @@ public class BuildProjectTestCase {
                     Main-Class: foo.bar.Main
                     Build-Tool-Jdk-Spec: %s
                     """.formatted(System.getProperty(JAVA_SPEC_VERSION)).replaceAll(NEW_LINE,
-                    System.lineSeparator());
+                    EOL);
             String manifestContents = new String(jarFile.getInputStream(manifest).readAllBytes(),
                     StandardCharsets.UTF_8);
             Assertions.assertEquals(expectedManifestContents, manifestContents);
@@ -99,7 +99,7 @@ public class BuildProjectTestCase {
             String expectedManifestContents = """
                     Build-Tool-Jdk-Spec: %s
                     """.formatted(System.getProperty(JAVA_SPEC_VERSION)).replaceAll(NEW_LINE,
-                    System.lineSeparator());
+                    EOL);
             String manifestContents = new String(jarFile.getInputStream(manifest).readAllBytes(),
                     StandardCharsets.UTF_8);
             Assertions.assertEquals(expectedManifestContents, manifestContents);
@@ -147,7 +147,7 @@ public class BuildProjectTestCase {
                     Main-Class: acme.bar.Main
                     Build-Tool-Jdk-Spec: %s
                     """.formatted(System.getProperty(JAVA_SPEC_VERSION)).replaceAll(NEW_LINE,
-                    System.lineSeparator());
+                    EOL);
             String manifestContents = new String(jarFile.getInputStream(manifest).readAllBytes(),
                     StandardCharsets.UTF_8);
             Assertions.assertEquals(expectedManifestContents, manifestContents);
