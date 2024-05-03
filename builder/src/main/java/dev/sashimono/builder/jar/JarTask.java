@@ -2,6 +2,7 @@ package dev.sashimono.builder.jar;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -101,19 +102,19 @@ public class JarTask implements Function<TaskMap, JarResult> {
         Files.createDirectories(metaInfDir);
         try (final BufferedWriter writer = Files.newBufferedWriter(manifestPath)) {
             final String delimiter = ": ";
-            final int max_line_bytes = 72;
-            final int max_line_bytes_less_eol = max_line_bytes - 2;
+            final int maxLineBytes = 72;
+            final int maxLineBytesLessEol = maxLineBytes - 2;
             for (final Map.Entry<String, String> entry : manifestEntries.entrySet()) {
                 String line = StringUtil.camelToCapitalisedKebabCase(entry.getKey()) + delimiter + entry.getValue();
                 final StringBuilder toWrite = new StringBuilder();
-                while (line.getBytes().length > max_line_bytes) {
-                    int bytes = max_line_bytes_less_eol;
-                    String newLine = line.substring(0, bytes);
-                    while (newLine.getBytes().length > max_line_bytes && bytes > 0) {
-                        newLine = line.substring(0, --bytes);
+                while (line.getBytes(StandardCharsets.UTF_8).length > maxLineBytes) {
+                    int index = maxLineBytesLessEol;
+                    String newLine = line.substring(0, index);
+                    while (newLine.getBytes(StandardCharsets.UTF_8).length > maxLineBytes && index > 0) {
+                        newLine = line.substring(0, --index);
                     }
                     toWrite.append(newLine).append(EOL);
-                    line = " " + line.substring(bytes);
+                    line = " " + line.substring(index);
                 }
                 toWrite.append(line).append(EOL);
                 writer.write(toWrite.toString());

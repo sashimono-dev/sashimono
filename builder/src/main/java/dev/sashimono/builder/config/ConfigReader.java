@@ -6,10 +6,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Reads a project config from a .sashimono directory
@@ -57,7 +57,7 @@ public class ConfigReader {
                 String packaging = null;
                 Path filteredResourcesDir = null;
                 Path pomPath = null;
-                Map<String, String> manifestEntries = new LinkedHashMap<>();
+                Map<String, String> manifestEntries = new TreeMap<>();
                 var lineNo = 0;
                 for (var i : lines) {
                     try {
