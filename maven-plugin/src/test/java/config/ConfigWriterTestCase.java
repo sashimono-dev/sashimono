@@ -1,16 +1,26 @@
 package config;
 
 import static dev.sashimono.mavenplugin.config.ConfigWriter.DEPENDENCIES_LIST;
+import static dev.sashimono.mavenplugin.config.ConfigWriter.MAVEN_JAR_PLUGIN;
 import static dev.sashimono.mavenplugin.config.ConfigWriter.SASHIMONO_DIR;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -27,6 +37,7 @@ public class ConfigWriterTestCase {
         final Model model = createModel(List.of("foo", "bar"));
         final List<Dependency> dependencies = createDependencies();
         final MavenProject project = createProject(model, dependencies, tempDir);
+        project.setBuild(new Build());
         ConfigWriter.writeConfig(project, true, () -> List.of(
                 new org.eclipse.aether.graph.Dependency(new DefaultArtifact("org.apache.httpcomponents:httpclient:4.5.14"),
                         "compile"),
@@ -49,10 +60,12 @@ public class ConfigWriterTestCase {
     }
 
     @Test
-    public void testSingleModuleConfigWriter(@TempDir final File tempDir) throws IOException {
+    public void testSingleModuleConfigWriter(@TempDir final File tempDir) throws IOException, XmlPullParserException {
         final Model model = createModel("foo", "jar");
         final List<Dependency> dependencies = createDependencies();
         final MavenProject project = createProject(model, dependencies, tempDir);
+        final Build build = createBuild("foo.bar.Main");
+        project.setBuild(build);
         ConfigWriter.writeConfig(project, false, () -> List.of(
                 new org.eclipse.aether.graph.Dependency(new DefaultArtifact("org.apache.httpcomponents:httpclient:4.5.14"),
                         "compile"),
@@ -69,6 +82,7 @@ public class ConfigWriterTestCase {
                 filtered_resources false
                 source src/main/java
                 pom pom.xml
+                manifest_entry mainClass:foo.bar.Main
                 """.replaceAll(NEW_LINE, System.lineSeparator());
         Assertions.assertEquals(expected, fileContents);
     }
@@ -115,4 +129,26 @@ public class ConfigWriterTestCase {
         return List.of(dependency1, dependency2, dependency3);
     }
 
+    private Build createBuild(final String mainClassName) throws XmlPullParserException, IOException {
+        final Build build = new Build();
+        final List<Plugin> plugins = new ArrayList<>();
+        final Plugin plugin = new Plugin();
+        plugin.setArtifactId(MAVEN_JAR_PLUGIN);
+        final String xml = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>%s</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                """.formatted(mainClassName);
+        final InputStream is = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
+        final Xpp3Dom xpp3Dom = Xpp3DomBuilder.build(is, String.valueOf(StandardCharsets.UTF_8));
+        plugin.setConfiguration(xpp3Dom);
+        plugins.add(plugin);
+        build.setPlugins(plugins);
+        return build;
+    }
 }

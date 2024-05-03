@@ -24,7 +24,7 @@ public class ResourceCopier {
     public static final String CLASS_EXT = ".class";
 
     public static boolean copyResources(final MavenProject project, final File buildOutputDirectory) {
-        final Path destDirPath = project.getBasedir().toPath().resolve(SASHIMONO_DIR + File.separator + RESOURCES_DIR);
+        final Path destDirPath = project.getBasedir().toPath().resolve(SASHIMONO_DIR).resolve(RESOURCES_DIR);
         final Path resourcePath = buildOutputDirectory.toPath();
         try {
             return copyResources(resourcePath, destDirPath);
@@ -33,7 +33,7 @@ public class ResourceCopier {
         }
     }
 
-    public static boolean copyResources(Path resourcePath, Path destDirPath) throws IOException {
+    public static boolean copyResources(final Path resourcePath, final Path destDirPath) throws IOException {
         if (!Files.exists(resourcePath)) {
             return false;
         }
