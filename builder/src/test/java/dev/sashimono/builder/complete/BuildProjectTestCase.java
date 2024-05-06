@@ -22,8 +22,13 @@ public class BuildProjectTestCase {
         Path dir = result.output().resolve("com").resolve("foo").resolve("test").resolve("1.1.0.Final");
         Path jar = dir.resolve("test-1.1.0.Final.jar");
         Path pom = dir.resolve("pom.xml");
+        Path sourcesJar = dir.resolve("test-1.1.0.Final-sources.jar");
         Assertions.assertTrue(Files.exists(jar));
         Assertions.assertTrue(Files.exists(pom));
+        Assertions.assertTrue(Files.exists(sourcesJar));
+        String expectedAppPropsContents = """
+                greeting.message = hello
+                greeting.name = quarkus""".replaceAll("\n", System.lineSeparator());
 
         try (JarFile jarFile = new JarFile(jar.toFile())) {
             var main = jarFile.getJarEntry("foo/bar/Main.class");
@@ -32,9 +37,6 @@ public class BuildProjectTestCase {
             Assertions.assertEquals(0, main.getLastModifiedTime().toMillis());
             var applicationProperties = jarFile.getJarEntry("config/application.properties");
             Assertions.assertNotNull(applicationProperties);
-            String expectedAppPropsContents = """
-                    greeting.message = hello
-                    greeting.name = quarkus""".replaceAll("\n", System.lineSeparator());
             String appPropsContents = new String(jarFile.getInputStream(applicationProperties).readAllBytes(),
                     StandardCharsets.UTF_8);
             Assertions.assertEquals(expectedAppPropsContents, appPropsContents);
@@ -72,7 +74,7 @@ public class BuildProjectTestCase {
         }
 
         String pomContents = Files.readString(pom);
-        String expected = """
+        String expectedPomContents = """
                 <?xml version="1.0" encoding="UTF-8"?>
                 <project xmlns="http://maven.apache.org/POM/4.0.0"
                          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -97,7 +99,34 @@ public class BuildProjectTestCase {
 
                 </project>
                 """.replaceAll(NEW_LINE, System.lineSeparator());
-        Assertions.assertEquals(expected, pomContents);
+        Assertions.assertEquals(expectedPomContents, pomContents);
+
+        try (JarFile sourcesJarFile = new JarFile(sourcesJar.toFile())) {
+            var main = sourcesJarFile.getJarEntry("foo/bar/Main.java");
+            Assertions.assertNotNull(main);
+            String expectedMainContents = """
+                    package foo.bar;
+
+                    public class Main {
+
+                        public static void main(String ... args) {
+                            System.out.println("Hello World");
+                        }
+
+                    }
+                    """.replaceAll(NEW_LINE,
+                    System.lineSeparator());
+            String mainContents = new String(sourcesJarFile.getInputStream(main).readAllBytes(),
+                    StandardCharsets.UTF_8);
+            Assertions.assertEquals(expectedMainContents, mainContents);
+            Assertions.assertEquals(0, main.getLastModifiedTime().toMillis());
+            var applicationProperties = sourcesJarFile.getJarEntry("config/application.properties");
+            Assertions.assertNotNull(applicationProperties);
+            String appPropsContents = new String(sourcesJarFile.getInputStream(applicationProperties).readAllBytes(),
+                    StandardCharsets.UTF_8);
+            Assertions.assertEquals(expectedAppPropsContents, appPropsContents);
+            Assertions.assertEquals(0, applicationProperties.getLastModifiedTime().toMillis());
+        }
     }
 
     @BuildTest("src/test/resources/multi-module-project")
@@ -105,8 +134,10 @@ public class BuildProjectTestCase {
         Path dir = result.output().resolve("com").resolve("acme").resolve("foo").resolve("1.0");
         Path jar = dir.resolve("foo-1.0.jar");
         Path pom = dir.resolve("pom.xml");
+        Path sourcesJar = dir.resolve("foo-1.0-sources.jar");
         Assertions.assertTrue(Files.exists(jar));
         Assertions.assertTrue(Files.exists(pom));
+        Assertions.assertTrue(Files.exists(sourcesJar));
 
         try (JarFile jarFile = new JarFile(jar.toFile())) {
             var main = jarFile.getJarEntry("acme/foo/Greeter.class");
@@ -126,7 +157,7 @@ public class BuildProjectTestCase {
         }
 
         String pomContents = Files.readString(pom);
-        String expected = """
+        String expectedPomContents = """
                 <?xml version="1.0" encoding="UTF-8"?>
                 <project xmlns="http://maven.apache.org/POM/4.0.0"
                          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -147,13 +178,36 @@ public class BuildProjectTestCase {
 
                 </project>
                 """.replaceAll(NEW_LINE, System.lineSeparator());
-        Assertions.assertEquals(expected, pomContents);
+        Assertions.assertEquals(expectedPomContents, pomContents);
+
+        try (JarFile sourcesJarFile = new JarFile(sourcesJar.toFile())) {
+            var greeter = sourcesJarFile.getJarEntry("acme/foo/Greeter.java");
+            Assertions.assertNotNull(greeter);
+            String expectedMainContents = """
+                    package acme.foo;
+
+                    public class Greeter {
+
+                        public String greet() {
+                            return "Hello World";
+                        }
+
+                    }
+                    """.replaceAll(NEW_LINE,
+                    System.lineSeparator());
+            String mainContents = new String(sourcesJarFile.getInputStream(greeter).readAllBytes(),
+                    StandardCharsets.UTF_8);
+            Assertions.assertEquals(expectedMainContents, mainContents);
+            Assertions.assertEquals(0, greeter.getLastModifiedTime().toMillis());
+        }
 
         dir = result.output().resolve("com").resolve("acme").resolve("bar").resolve("1.0");
         jar = dir.resolve("bar-1.0.jar");
         pom = dir.resolve("pom.xml");
+        sourcesJar = dir.resolve("bar-1.0-sources.jar");
         Assertions.assertTrue(Files.exists(jar));
         Assertions.assertTrue(Files.exists(pom));
+        Assertions.assertTrue(Files.exists(sourcesJar));
 
         try (JarFile jarFile = new JarFile(jar.toFile())) {
             var main = jarFile.getJarEntry("acme/bar/Main.class");
@@ -174,7 +228,7 @@ public class BuildProjectTestCase {
         }
 
         pomContents = Files.readString(pom);
-        expected = """
+        expectedPomContents = """
                 <?xml version="1.0" encoding="UTF-8"?>
                 <project xmlns="http://maven.apache.org/POM/4.0.0"
                          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -205,6 +259,27 @@ public class BuildProjectTestCase {
 
                 </project>
                 """.replaceAll(NEW_LINE, System.lineSeparator());
-        Assertions.assertEquals(expected, pomContents);
+        Assertions.assertEquals(expectedPomContents, pomContents);
+
+        try (JarFile sourcesJarFile = new JarFile(sourcesJar.toFile())) {
+            var main = sourcesJarFile.getJarEntry("acme/bar/Main.java");
+            Assertions.assertNotNull(main);
+            String expectedMainContents = """
+                    package acme.bar;
+
+                    import acme.foo.Greeter;
+                    public class Main {
+                        public static void main(String ... args) {
+                            System.out.println(new Greeter().greet());
+                        }
+
+                    }
+                    """.replaceAll(NEW_LINE,
+                    System.lineSeparator());
+            String mainContents = new String(sourcesJarFile.getInputStream(main).readAllBytes(),
+                    StandardCharsets.UTF_8);
+            Assertions.assertEquals(expectedMainContents, mainContents);
+            Assertions.assertEquals(0, main.getLastModifiedTime().toMillis());
+        }
     }
 }

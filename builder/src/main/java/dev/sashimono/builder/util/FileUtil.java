@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -25,7 +26,8 @@ public class FileUtil {
         }
     }
 
-    public static void collectFiles(final Path dir, final List<Path> files) {
+    public static List<Path> collectFiles(final Path dir) {
+        final List<Path> files = new ArrayList<>();
         try {
             Files.walkFileTree(dir, new SimpleFileVisitor<>() {
                 @Override
@@ -37,6 +39,7 @@ public class FileUtil {
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
+        return files;
     }
 
     public static Path getOutputPath(final Path outputDir, final GAV gav) {
