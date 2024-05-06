@@ -23,6 +23,7 @@ import dev.sashimono.builder.jar.FileOutput;
 import dev.sashimono.builder.jar.JarResult;
 import dev.sashimono.builder.jar.JarTask;
 import dev.sashimono.builder.jar.PomTask;
+import dev.sashimono.builder.jar.SourcesJarTask;
 import dev.sashimono.builder.util.Task;
 import dev.sashimono.builder.util.TaskRunner;
 
@@ -50,6 +51,7 @@ public class Sashimono {
         runner.addResultMapper(JarResult.class, JarResult.FILE_OUTPUT_MAPPER);
         Task<Void> digestTask = runner.newTask(Void.class, new DigestTask());
         Map<GAV, Task<FileOutput>> pomTasks = new HashMap<>();
+        Map<GAV, Task<FileOutput>> sourcesJarTasks = new HashMap<>();
         //first we need to figure out what we are building locally, so we don't try and download it
         for (var m : config.moduleConfigs()) {
             if (m.packaging().equals(JAR)) {
@@ -60,6 +62,9 @@ public class Sashimono {
                 Task<FileOutput> pomTask = runner.newTask(FileOutput.class,
                         new PomTask(outputDir, m.gav(), m.pomPath()));
                 pomTasks.put(m.gav(), pomTask);
+                Task<FileOutput> sourcesJarTask = runner.newTask(FileOutput.class,
+                        new SourcesJarTask(outputDir, m.gav(), m.filteredResourcesDir(), m.sourceDirectories()));
+                sourcesJarTasks.put(m.gav(), sourcesJarTask);
             }
         }
         for (var m : config.moduleConfigs()) {
@@ -95,6 +100,8 @@ public class Sashimono {
                 digestTask.addDependency(jarTask);
                 Task<FileOutput> pomTask = pomTasks.get(m.gav());
                 digestTask.addDependency(pomTask);
+                Task<FileOutput> sourcesJarTask = sourcesJarTasks.get(m.gav());
+                digestTask.addDependency(sourcesJarTask);
             }
         }
         runner.run();
