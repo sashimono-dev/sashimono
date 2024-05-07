@@ -1,6 +1,6 @@
 package config;
 
-import static dev.sashimono.mavenplugin.config.ConfigWriter.SASHIMONO_DIR;
+import static dev.sashimono.mavenplugin.config.MavenConfigWriter.SASHIMONO_DIR;
 import static dev.sashimono.mavenplugin.copy.ResourceCopier.RESOURCES_DIR;
 
 import java.io.File;

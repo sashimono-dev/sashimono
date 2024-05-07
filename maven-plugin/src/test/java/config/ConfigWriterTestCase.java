@@ -1,8 +1,8 @@
 package config;
 
-import static dev.sashimono.mavenplugin.config.ConfigWriter.DEPENDENCIES_LIST;
-import static dev.sashimono.mavenplugin.config.ConfigWriter.MAVEN_JAR_PLUGIN;
-import static dev.sashimono.mavenplugin.config.ConfigWriter.SASHIMONO_DIR;
+import static dev.sashimono.mavenplugin.config.MavenConfigWriter.DEPENDENCIES_LIST;
+import static dev.sashimono.mavenplugin.config.MavenConfigWriter.MAVEN_JAR_PLUGIN;
+import static dev.sashimono.mavenplugin.config.MavenConfigWriter.SASHIMONO_DIR;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import dev.sashimono.mavenplugin.config.ConfigWriter;
+import dev.sashimono.mavenplugin.config.MavenConfigWriter;
 
 public class ConfigWriterTestCase {
 
@@ -38,7 +38,7 @@ public class ConfigWriterTestCase {
         final List<Dependency> dependencies = createDependencies();
         final MavenProject project = createProject(model, dependencies, tempDir);
         project.setBuild(new Build());
-        ConfigWriter.writeConfig(project, true, () -> List.of(
+        MavenConfigWriter.writeConfig(project, true, () -> List.of(
                 new org.eclipse.aether.graph.Dependency(new DefaultArtifact("org.apache.httpcomponents:httpclient:4.5.14"),
                         "compile"),
                 new org.eclipse.aether.graph.Dependency(new DefaultArtifact("org.hibernate.orm:hibernate-core:6.4.4.Final"),
@@ -66,7 +66,7 @@ public class ConfigWriterTestCase {
         final MavenProject project = createProject(model, dependencies, tempDir);
         final Build build = createBuild("foo.bar.Main");
         project.setBuild(build);
-        ConfigWriter.writeConfig(project, false, () -> List.of(
+        MavenConfigWriter.writeConfig(project, false, () -> List.of(
                 new org.eclipse.aether.graph.Dependency(new DefaultArtifact("org.apache.httpcomponents:httpclient:4.5.14"),
                         "compile"),
                 new org.eclipse.aether.graph.Dependency(new DefaultArtifact("org.hibernate.orm:hibernate-core:6.4.4.Final"),
