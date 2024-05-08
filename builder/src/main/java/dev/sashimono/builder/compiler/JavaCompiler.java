@@ -2,107 +2,63 @@ package dev.sashimono.builder.compiler;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
 
-import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
-import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
+import dev.sashimono.builder.tool.AbstractJavaTool;
 import dev.sashimono.builder.util.Log;
 
-public class JavaCompiler {
+public class JavaCompiler extends AbstractJavaTool {
 
-    static final Log log = Log.of(JavaCompiler.class);
+    private static final Log log = Log.of(JavaCompiler.class);
 
-    private final javax.tools.JavaCompiler compiler;
-    private final List<String> compilerFlags;
-    private final List<Path> dependencies;
-    private final List<Path> sourceDirectories;
-
-    public static JavaCompiler build(List<Path> dependencies, List<Path> sourceDirectories) {
-        return new JavaCompiler(ToolProvider.getSystemJavaCompiler(), List.of(), dependencies, sourceDirectories);
-    }
-
-    JavaCompiler(javax.tools.JavaCompiler compiler, List<String> compilerFlags, List<Path> dependencies,
-            List<Path> sourceDirectories) {
-        this.compiler = compiler;
-        this.compilerFlags = compilerFlags;
-        this.dependencies = dependencies;
-        this.sourceDirectories = sourceDirectories;
+    public JavaCompiler(final javax.tools.JavaCompiler compiler, final List<String> flags, final List<Path> dependencies,
+            final List<Path> sourceDirectories) {
+        super(compiler, flags, dependencies, sourceDirectories);
         if (compiler == null) {
             throw new RuntimeException("No system java compiler provided");
         }
     }
 
-    public Path compile() {
+    @Override
+    protected Log getLogger() {
+        return log;
+    }
 
-        StandardJavaFileManager fileManager = compiler.getStandardFileManager((DiagnosticListener) null, (Locale) null,
+    public static JavaCompiler build(final List<Path> dependencies, final List<Path> sourceDirectories) {
+        return new JavaCompiler(ToolProvider.getSystemJavaCompiler(), List.of(), dependencies, sourceDirectories);
+    }
+
+    @Override
+    public Path process() {
+        final javax.tools.JavaCompiler compiler = (javax.tools.JavaCompiler) tool;
+        final StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null,
                 StandardCharsets.UTF_8);
-
-        List<File> sourceFiles = new ArrayList<>();
-        sourceDirectories.forEach(s -> {
-            try {
-                Files.walkFileTree(s, new SimpleFileVisitor<>() {
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        if (file.getFileName().toString().endsWith(".java")) {
-                            sourceFiles.add(file.toFile());
-                        }
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                });
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        //we sort the source files to help with reproducibility
-        sourceFiles.sort(Comparator.comparing(Object::toString));
+        final List<File> sourceFiles = collectSourceFiles();
         try {
-            var output = Files.createTempDirectory("output");
-            fileManager.setLocation(StandardLocation.CLASS_PATH,
-                    dependencies.stream().map(Path::toFile).collect(Collectors.toSet()));
-            fileManager.setLocation(StandardLocation.CLASS_OUTPUT, List.of(output.toFile()));
-
-            DiagnosticCollector<JavaFileObject> diagnosticsCollector = new DiagnosticCollector();
-            var sources = fileManager
+            final Path output = configureFileManager(fileManager, StandardLocation.CLASS_OUTPUT);
+            final DiagnosticCollector<JavaFileObject> diagnosticsCollector = new DiagnosticCollector<>();
+            final var sources = fileManager
                     .getJavaFileObjectsFromFiles(sourceFiles);
-            javax.tools.JavaCompiler.CompilationTask task = this.compiler.getTask((Writer) null, fileManager,
+            final javax.tools.JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager,
                     diagnosticsCollector,
-                    this.compilerFlags, (Iterable) null, sources);
-            boolean compilationTaskSucceed = task.call();
-
-            for (Diagnostic<? extends JavaFileObject> diagnostic : diagnosticsCollector.getDiagnostics()) {
-                if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
-                    log.error(diagnostic.getMessage(Locale.getDefault()));
-                } else {
-                    log.info(diagnostic.getMessage(Locale.getDefault()));
-                }
-            }
-
+                    this.flags, null, sources);
+            final boolean compilationTaskSucceed = task.call();
+            processDiagnostics(diagnosticsCollector);
             if (!compilationTaskSucceed) {
                 throw new RuntimeException("compilation failed");
             }
             log.infof("Compiled classes to %s", output);
             return output;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException("Cannot initialize file manager", e);
         }
     }
-
 }

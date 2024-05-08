@@ -15,20 +15,21 @@ import dev.sashimono.builder.config.GAV;
 import dev.sashimono.builder.util.FileUtil;
 import dev.sashimono.builder.util.Log;
 
-public class AbstractJarTask {
+public abstract class AbstractJarTask {
 
-    private static final Log log = Log.of(AbstractJarTask.class);
     public static final String DELIMITER = "-";
     protected final Path outputDir;
     protected final GAV gav;
     protected final Path filteredResourcesDir;
-    protected final Map<Path, List<Path>> toJar = new TreeMap<>();
+    protected final Map<Path, List<Path>> toJarFilesByDir = new TreeMap<>();
 
     public AbstractJarTask(final Path outputDir, final GAV gav, final Path filteredResourcesDir) {
         this.outputDir = outputDir;
         this.gav = gav;
         this.filteredResourcesDir = filteredResourcesDir;
     }
+
+    protected abstract Log getLogger();
 
     protected Path createJar() throws IOException {
         return createJar("");
@@ -47,7 +48,7 @@ public class AbstractJarTask {
         artifactName += ".jar";
         final Path target = parentDir.resolve(artifactName);
         try (final JarOutputStream out = new JarOutputStream(Files.newOutputStream(target))) {
-            toJar.forEach((dir, files) -> {
+            toJarFilesByDir.forEach((dir, files) -> {
                 try {
                     files.sort(Comparator.comparing(Object::toString));
                     for (final Path file : files) {
@@ -65,13 +66,13 @@ public class AbstractJarTask {
                 }
             });
         }
-        log.infof("created jar %s", target);
+        getLogger().infof("created jar %s", target);
         return target;
     }
 
     protected void collectFiles(final Path... dirs) throws IOException {
         for (final Path dir : dirs) {
-            toJar.put(dir, FileUtil.collectFiles(dir));
+            toJarFilesByDir.put(dir, FileUtil.collectFiles(dir));
         }
     }
 }

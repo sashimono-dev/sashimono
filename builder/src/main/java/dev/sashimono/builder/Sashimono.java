@@ -18,10 +18,13 @@ import dev.sashimono.builder.config.Repository;
 import dev.sashimono.builder.config.RepositoryConfig;
 import dev.sashimono.builder.dependencies.DownloadDependencyTask;
 import dev.sashimono.builder.dependencies.ResolvedDependency;
+import dev.sashimono.builder.documenter.DocumentationResult;
+import dev.sashimono.builder.documenter.JavaDocumenterTask;
 import dev.sashimono.builder.jar.DigestTask;
 import dev.sashimono.builder.jar.FileOutput;
 import dev.sashimono.builder.jar.JarResult;
 import dev.sashimono.builder.jar.JarTask;
+import dev.sashimono.builder.jar.JavadocJarTask;
 import dev.sashimono.builder.jar.PomTask;
 import dev.sashimono.builder.jar.SourcesJarTask;
 import dev.sashimono.builder.util.Task;
@@ -52,6 +55,7 @@ public class Sashimono {
         Task<Void> digestTask = runner.newTask(Void.class, new DigestTask());
         Map<GAV, Task<FileOutput>> pomTasks = new HashMap<>();
         Map<GAV, Task<FileOutput>> sourcesJarTasks = new HashMap<>();
+        Map<GAV, Task<FileOutput>> javadocJarTasks = new HashMap<>();
         //first we need to figure out what we are building locally, so we don't try and download it
         for (var m : config.moduleConfigs()) {
             if (m.packaging().equals(JAR)) {
@@ -65,6 +69,9 @@ public class Sashimono {
                 Task<FileOutput> sourcesJarTask = runner.newTask(FileOutput.class,
                         new SourcesJarTask(outputDir, m.gav(), m.filteredResourcesDir(), m.sourceDirectories()));
                 sourcesJarTasks.put(m.gav(), sourcesJarTask);
+                Task<FileOutput> javadocJarTask = runner.newTask(FileOutput.class,
+                        new JavadocJarTask(outputDir, m.gav(), m.filteredResourcesDir()));
+                javadocJarTasks.put(m.gav(), javadocJarTask);
             }
         }
         for (var m : config.moduleConfigs()) {
@@ -92,8 +99,11 @@ public class Sashimono {
             if (m.packaging().equals(JAR)) {
                 Task<CompileResult> compileTask = runner.newTask(CompileResult.class,
                         new JavaCompilerTask(m.sourceDirectories()));
+                Task<DocumentationResult> documentationTask = runner.newTask(DocumentationResult.class,
+                        new JavaDocumenterTask(m.sourceDirectories()));
                 for (var i : moduleDependencies) {
                     compileTask.addDependency(i);
+                    documentationTask.addDependency(i);
                 }
                 Task<JarResult> jarTask = jarTasks.get(m.gav());
                 jarTask.addDependency(compileTask);
@@ -102,6 +112,9 @@ public class Sashimono {
                 digestTask.addDependency(pomTask);
                 Task<FileOutput> sourcesJarTask = sourcesJarTasks.get(m.gav());
                 digestTask.addDependency(sourcesJarTask);
+                Task<FileOutput> javadocJarTask = javadocJarTasks.get(m.gav());
+                javadocJarTask.addDependency(documentationTask);
+                digestTask.addDependency(javadocJarTask);
             }
         }
         runner.run();
