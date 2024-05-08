@@ -1,4 +1,8 @@
 name: Java CI
+permissions:
+  id-token: write
+  attestations: write
+  contents: read
 
 on:
   push:
@@ -21,3 +25,7 @@ jobs:
           maven-version: 3.9.5
       - name: Build with Maven
         run: mvn -V -B install -Dvalidate-format
+      - name: Attest Build Provenance
+        uses: actions/attest-build-provenance@897ed5eab6ed058a474202017ada7f40bfa52940 # v1.0.0
+        with:
+          subject-path: "builder/target/sashimono.jar"
