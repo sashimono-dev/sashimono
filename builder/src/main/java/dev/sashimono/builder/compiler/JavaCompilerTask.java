@@ -5,13 +5,14 @@ import java.util.List;
 import java.util.function.Function;
 
 import dev.sashimono.builder.dependencies.ResolvedDependency;
-import dev.sashimono.builder.tool.AbstractJavaToolTask;
 import dev.sashimono.builder.util.TaskMap;
 
-public class JavaCompilerTask extends AbstractJavaToolTask implements Function<TaskMap, CompileResult> {
+public class JavaCompilerTask implements Function<TaskMap, CompileResult> {
+
+    private final List<Path> sourceDirectories;
 
     public JavaCompilerTask(final List<Path> sourceDirectories) {
-        super(sourceDirectories);
+        this.sourceDirectories = sourceDirectories;
     }
 
     @Override
