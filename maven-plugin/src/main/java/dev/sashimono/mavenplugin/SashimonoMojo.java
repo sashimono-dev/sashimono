@@ -23,7 +23,7 @@ import org.apache.maven.project.ProjectBuildingRequest;
 import org.apache.maven.project.ProjectBuildingResult;
 import org.eclipse.aether.graph.Dependency;
 
-import dev.sashimono.mavenplugin.config.ConfigWriter;
+import dev.sashimono.mavenplugin.config.MavenConfigWriter;
 import dev.sashimono.mavenplugin.copy.ResourceCopier;
 
 @Mojo(name = "generate", defaultPhase = LifecyclePhase.COMPILE)
@@ -80,7 +80,7 @@ public class SashimonoMojo extends AbstractMojo {
             }
         };
 
-        ConfigWriter.writeConfig(project, resourcesCopied, dependencySupplier);
+        MavenConfigWriter.writeConfig(project, resourcesCopied, dependencySupplier);
     }
 
     /**

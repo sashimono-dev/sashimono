@@ -7,7 +7,7 @@
     <parent>
         <groupId>dev.sashimono</groupId>
         <artifactId>sashimono-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>999-SNAPSHOT</version>
     </parent>
 
     <artifactId>builder</artifactId>

@@ -6,7 +6,7 @@
 
     <groupId>dev.sashimono</groupId>
     <artifactId>sashimono-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>999-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -28,10 +28,22 @@
     <modules>
         <module>builder</module>
         <module>maven-plugin</module>
+        <module>gradle-plugin</module>
+        <module>config-generator</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>dev.sashimono</groupId>
+                <artifactId>builder</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.sashimono</groupId>
+                <artifactId>config-generator</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.maven</groupId>
                 <artifactId>maven-plugin-api</artifactId>
