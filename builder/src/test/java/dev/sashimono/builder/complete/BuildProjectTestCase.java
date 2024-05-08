@@ -23,12 +23,14 @@ public class BuildProjectTestCase {
         Path jar = dir.resolve("test-1.1.0.Final.jar");
         Path pom = dir.resolve("pom.xml");
         Path sourcesJar = dir.resolve("test-1.1.0.Final-sources.jar");
+        Path javadocJar = dir.resolve("test-1.1.0.Final-javadoc.jar");
         Assertions.assertTrue(Files.exists(jar));
         Assertions.assertTrue(Files.exists(pom));
         Assertions.assertTrue(Files.exists(sourcesJar));
+        Assertions.assertTrue(Files.exists(javadocJar));
         String expectedAppPropsContents = """
                 greeting.message = hello
-                greeting.name = quarkus""".replaceAll("\n", System.lineSeparator());
+                greeting.name = quarkus""".replaceAll(NEW_LINE, System.lineSeparator());
 
         try (JarFile jarFile = new JarFile(jar.toFile())) {
             var main = jarFile.getJarEntry("foo/bar/Main.class");
@@ -127,6 +129,13 @@ public class BuildProjectTestCase {
             Assertions.assertEquals(expectedAppPropsContents, appPropsContents);
             Assertions.assertEquals(0, applicationProperties.getLastModifiedTime().toMillis());
         }
+
+        try (JarFile javadocJarFile = new JarFile(javadocJar.toFile())) {
+            var main = javadocJarFile.getJarEntry("foo/bar/Main.html");
+            Assertions.assertNotNull(main);
+            Assertions.assertTrue(main.getSize() > 100);
+            Assertions.assertEquals(0, main.getLastModifiedTime().toMillis());
+        }
     }
 
     @BuildTest("src/test/resources/multi-module-project")
@@ -135,9 +144,11 @@ public class BuildProjectTestCase {
         Path jar = dir.resolve("foo-1.0.jar");
         Path pom = dir.resolve("pom.xml");
         Path sourcesJar = dir.resolve("foo-1.0-sources.jar");
+        Path javadocJar = dir.resolve("foo-1.0-javadoc.jar");
         Assertions.assertTrue(Files.exists(jar));
         Assertions.assertTrue(Files.exists(pom));
         Assertions.assertTrue(Files.exists(sourcesJar));
+        Assertions.assertTrue(Files.exists(javadocJar));
 
         try (JarFile jarFile = new JarFile(jar.toFile())) {
             var main = jarFile.getJarEntry("acme/foo/Greeter.class");
@@ -201,13 +212,22 @@ public class BuildProjectTestCase {
             Assertions.assertEquals(0, greeter.getLastModifiedTime().toMillis());
         }
 
+        try (JarFile javadocJarFile = new JarFile(javadocJar.toFile())) {
+            var greeter = javadocJarFile.getJarEntry("acme/foo/Greeter.html");
+            Assertions.assertNotNull(greeter);
+            Assertions.assertTrue(greeter.getSize() > 100);
+            Assertions.assertEquals(0, greeter.getLastModifiedTime().toMillis());
+        }
+
         dir = result.output().resolve("com").resolve("acme").resolve("bar").resolve("1.0");
         jar = dir.resolve("bar-1.0.jar");
         pom = dir.resolve("pom.xml");
         sourcesJar = dir.resolve("bar-1.0-sources.jar");
+        javadocJar = dir.resolve("bar-1.0-javadoc.jar");
         Assertions.assertTrue(Files.exists(jar));
         Assertions.assertTrue(Files.exists(pom));
         Assertions.assertTrue(Files.exists(sourcesJar));
+        Assertions.assertTrue(Files.exists(javadocJar));
 
         try (JarFile jarFile = new JarFile(jar.toFile())) {
             var main = jarFile.getJarEntry("acme/bar/Main.class");
@@ -279,6 +299,13 @@ public class BuildProjectTestCase {
             String mainContents = new String(sourcesJarFile.getInputStream(main).readAllBytes(),
                     StandardCharsets.UTF_8);
             Assertions.assertEquals(expectedMainContents, mainContents);
+            Assertions.assertEquals(0, main.getLastModifiedTime().toMillis());
+        }
+
+        try (JarFile javadocJarFile = new JarFile(javadocJar.toFile())) {
+            var main = javadocJarFile.getJarEntry("acme/bar/Main.html");
+            Assertions.assertNotNull(main);
+            Assertions.assertTrue(main.getSize() > 100);
             Assertions.assertEquals(0, main.getLastModifiedTime().toMillis());
         }
     }

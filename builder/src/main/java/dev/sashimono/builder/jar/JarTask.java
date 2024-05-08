@@ -13,6 +13,7 @@ import dev.sashimono.builder.compiler.CompileResult;
 import dev.sashimono.builder.config.Dependency;
 import dev.sashimono.builder.config.GAV;
 import dev.sashimono.builder.dependencies.ResolvedDependency;
+import dev.sashimono.builder.util.Log;
 import dev.sashimono.builder.util.StringUtil;
 import dev.sashimono.builder.util.TaskMap;
 
@@ -21,6 +22,7 @@ import dev.sashimono.builder.util.TaskMap;
  */
 public class JarTask extends AbstractJarTask implements Function<TaskMap, JarResult> {
 
+    private static final Log log = Log.of(JarTask.class);
     public static final String BUILD_TOOL_JDK_SPEC = "Build-Tool-Jdk-Spec";
     public static final String JAVA_SPEC_VERSION = "java.specification.version";
     public static final String EOL = "\r\n"; // For consistency across manifests
@@ -30,6 +32,11 @@ public class JarTask extends AbstractJarTask implements Function<TaskMap, JarRes
             final Map<String, String> manifestEntries) {
         super(outputDir, gav, filteredResourcesDir);
         this.manifestEntries = manifestEntries;
+    }
+
+    @Override
+    protected Log getLogger() {
+        return log;
     }
 
     @Override
