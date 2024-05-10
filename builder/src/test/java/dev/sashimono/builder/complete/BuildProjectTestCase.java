@@ -21,7 +21,7 @@ public class BuildProjectTestCase {
     public void testBuildingSimpleProject(BuildResult result) throws IOException {
         Path dir = result.output().resolve("com").resolve("foo").resolve("test").resolve("1.1.0.Final");
         Path jar = dir.resolve("test-1.1.0.Final.jar");
-        Path pom = dir.resolve("pom.xml");
+        Path pom = dir.resolve("test-1.1.0.Final.pom");
         Path sourcesJar = dir.resolve("test-1.1.0.Final-sources.jar");
         Path javadocJar = dir.resolve("test-1.1.0.Final-javadoc.jar");
         Assertions.assertTrue(Files.exists(jar));
@@ -142,7 +142,7 @@ public class BuildProjectTestCase {
     public void testBuildingMultiModuleProject(BuildResult result) throws IOException {
         Path dir = result.output().resolve("com").resolve("acme").resolve("foo").resolve("1.0");
         Path jar = dir.resolve("foo-1.0.jar");
-        Path pom = dir.resolve("pom.xml");
+        Path pom = dir.resolve("foo-1.0.pom");
         Path sourcesJar = dir.resolve("foo-1.0-sources.jar");
         Path javadocJar = dir.resolve("foo-1.0-javadoc.jar");
         Assertions.assertTrue(Files.exists(jar));
@@ -221,7 +221,7 @@ public class BuildProjectTestCase {
 
         dir = result.output().resolve("com").resolve("acme").resolve("bar").resolve("1.0");
         jar = dir.resolve("bar-1.0.jar");
-        pom = dir.resolve("pom.xml");
+        pom = dir.resolve("bar-1.0.pom");
         sourcesJar = dir.resolve("bar-1.0-sources.jar");
         javadocJar = dir.resolve("bar-1.0-javadoc.jar");
         Assertions.assertTrue(Files.exists(jar));

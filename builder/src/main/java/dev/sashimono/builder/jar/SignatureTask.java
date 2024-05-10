@@ -22,7 +22,7 @@ public class SignatureTask implements Function<TaskMap, Void> {
             for (final FileOutput i : outputs) {
                 final Path inputPath = i.file().toAbsolutePath();
                 final String inputFileName = inputPath.getFileName().toString();
-                if (inputFileName.endsWith(".jar")) {
+                if (inputFileName.endsWith(".jar") || inputFileName.endsWith(".pom")) {
                     final Path outputPath = inputPath
                             .resolveSibling(inputFileName + ".asc");
                     final ProcessBuilder processBuilder = new ProcessBuilder();
