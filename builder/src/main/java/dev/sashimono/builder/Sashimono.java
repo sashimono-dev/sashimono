@@ -26,6 +26,7 @@ import dev.sashimono.builder.jar.JarResult;
 import dev.sashimono.builder.jar.JarTask;
 import dev.sashimono.builder.jar.JavadocJarTask;
 import dev.sashimono.builder.jar.PomTask;
+import dev.sashimono.builder.jar.SignatureTask;
 import dev.sashimono.builder.jar.SourcesJarTask;
 import dev.sashimono.builder.util.Task;
 import dev.sashimono.builder.util.TaskRunner;
@@ -53,6 +54,8 @@ public class Sashimono {
         runner.addResultMapper(JarResult.class, JarResult.RESOLVED_DEPENDENCY_MAPPER);
         runner.addResultMapper(JarResult.class, JarResult.FILE_OUTPUT_MAPPER);
         Task<Void> digestTask = runner.newTask(Void.class, new DigestTask());
+        Task<Void> signatureTask = runner.newTask(Void.class, new SignatureTask());
+        signatureTask.addDependency(digestTask);
         Map<GAV, Task<FileOutput>> pomTasks = new HashMap<>();
         Map<GAV, Task<FileOutput>> sourcesJarTasks = new HashMap<>();
         Map<GAV, Task<FileOutput>> javadocJarTasks = new HashMap<>();
@@ -108,13 +111,17 @@ public class Sashimono {
                 Task<JarResult> jarTask = jarTasks.get(m.gav());
                 jarTask.addDependency(compileTask);
                 digestTask.addDependency(jarTask);
+                signatureTask.addDependency(jarTask);
                 Task<FileOutput> pomTask = pomTasks.get(m.gav());
                 digestTask.addDependency(pomTask);
+                signatureTask.addDependency(pomTask);
                 Task<FileOutput> sourcesJarTask = sourcesJarTasks.get(m.gav());
                 digestTask.addDependency(sourcesJarTask);
+                signatureTask.addDependency(sourcesJarTask);
                 Task<FileOutput> javadocJarTask = javadocJarTasks.get(m.gav());
                 javadocJarTask.addDependency(documentationTask);
                 digestTask.addDependency(javadocJarTask);
+                signatureTask.addDependency(javadocJarTask);
             }
         }
         runner.run();

@@ -13,3 +13,11 @@ Sashimono is based on the following principles:
 - Sashimono should have as few dependencies as possible, ideally zero, however some functionality may required additional libraries (e.g. signing).
 - All dependencies should be explicit, and referenced by hash. Alternatively trusted keys can be specified to handle the case where a rebuilt dependencies has a different hash to the original. Transient dependencies should be resolved when the Sashimono build file is generated.
 - Everything should be checked into the repository, e.g. if you are doing code generation with a Maven plugin the release tag should have this checked in so Sashimono can build it without needed to run the code generator.
+
+Signature generation can be enabled when building with the system property: `-Dsign_artifacts=true`.
+
+The following environment variables are required for signature generation:
+
+- `GPG_EXECUTABLE_PATH` - The absolute path to your GPG executable/binary.
+- `GPG_KEYNAME` - The name of the private key within your secret keyring that you wish to sign with.
+- `GPG_PASSPHRASE` - The passphrase encrypting your private key.
