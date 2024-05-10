@@ -1,7 +1,6 @@
 package dev.sashimono.builder.jar;
 
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.parseBoolean;
+import static java.lang.Boolean.getBoolean;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -14,7 +13,7 @@ public class SignatureTask implements Function<TaskMap, Void> {
 
     @Override
     public Void apply(final TaskMap taskMap) {
-        if (parseBoolean(System.getProperty("sign_artifacts", FALSE.toString()))) {
+        if (getBoolean("sign_artifacts")) {
             final Path executablePath = Path.of(System.getenv("GPG_EXECUTABLE_PATH"));
             final String keyName = System.getenv("GPG_KEYNAME");
             final String passPhrase = System.getenv("GPG_PASSPHRASE");
