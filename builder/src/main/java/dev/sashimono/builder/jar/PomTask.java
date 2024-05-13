@@ -32,7 +32,8 @@ public class PomTask implements Function<TaskMap, FileOutput> {
         final Path parentDir = FileUtil.getOutputPath(outputDir, gav);
         try {
             Files.createDirectories(parentDir);
-            final Path targetPomPath = parentDir.resolve(sourcePomPath.getFileName());
+            final String pomFileName = gav.artifact() + "-" + gav.version() + ".pom";
+            final Path targetPomPath = parentDir.resolve(pomFileName);
             Files.copy(sourcePomPath, targetPomPath, StandardCopyOption.REPLACE_EXISTING);
             log.infof("copied pom to %s", targetPomPath);
             return new FileOutput(targetPomPath);

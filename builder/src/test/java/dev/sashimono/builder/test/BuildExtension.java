@@ -32,7 +32,7 @@ class BuildExtension implements BeforeEachCallback, ParameterResolver {
         //TODO: should this be in some kind of extension system that lets you apply tests to all builds?
 
         try (Stream<Path> pathStream = Files.walk(tempDir)) {
-            pathStream.filter(f -> f.getFileName().toString().endsWith(".jar") || f.getFileName().toString().endsWith(".xml"))
+            pathStream.filter(f -> f.getFileName().toString().endsWith(".jar") || f.getFileName().toString().endsWith(".pom"))
                     .forEach(f -> {
                         try (var in = Files.newInputStream(f)) {
                             Path md5 = f.getParent().resolve(f.getFileName() + ".md5");
