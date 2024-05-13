@@ -1,5 +1,6 @@
 package dev.sashimono.builder.jar;
 
+import static dev.sashimono.builder.jar.DeployTask.DEPLOY_ARTIFACTS;
 import static java.lang.Boolean.getBoolean;
 
 import java.io.BufferedReader;
@@ -20,11 +21,10 @@ public class SignatureTask implements Function<TaskMap, Void> {
 
     @Override
     public Void apply(final TaskMap taskMap) {
-        if (getBoolean("sign_artifacts")) {
+        if (getBoolean(DEPLOY_ARTIFACTS)) {
             final Path executablePath = Path.of(System.getenv("GPG_EXECUTABLE_PATH"));
             final String keyName = System.getenv("GPG_KEYNAME");
             final String passPhrase = System.getenv("GPG_PASSPHRASE");
-
             final List<FileOutput> outputs = taskMap.results(FileOutput.class);
             for (final FileOutput i : outputs) {
                 final Path inputPath = i.file().toAbsolutePath();

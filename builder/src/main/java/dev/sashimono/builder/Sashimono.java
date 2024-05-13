@@ -20,6 +20,7 @@ import dev.sashimono.builder.dependencies.DownloadDependencyTask;
 import dev.sashimono.builder.dependencies.ResolvedDependency;
 import dev.sashimono.builder.documenter.DocumentationResult;
 import dev.sashimono.builder.documenter.JavaDocumenterTask;
+import dev.sashimono.builder.jar.DeployTask;
 import dev.sashimono.builder.jar.DigestTask;
 import dev.sashimono.builder.jar.FileOutput;
 import dev.sashimono.builder.jar.JarResult;
@@ -56,6 +57,10 @@ public class Sashimono {
         Task<Void> digestTask = runner.newTask(Void.class, new DigestTask());
         Task<Void> signatureTask = runner.newTask(Void.class, new SignatureTask());
         signatureTask.addDependency(digestTask);
+        Task<Void> deployTask = runner.newTask(Void.class,
+                new DeployTask(outputDir, httpClient));
+        deployTask.addDependency(digestTask);
+        deployTask.addDependency(signatureTask);
         Map<GAV, Task<FileOutput>> pomTasks = new HashMap<>();
         Map<GAV, Task<FileOutput>> sourcesJarTasks = new HashMap<>();
         Map<GAV, Task<FileOutput>> javadocJarTasks = new HashMap<>();
@@ -112,16 +117,20 @@ public class Sashimono {
                 jarTask.addDependency(compileTask);
                 digestTask.addDependency(jarTask);
                 signatureTask.addDependency(jarTask);
+                deployTask.addDependency(jarTask);
                 Task<FileOutput> pomTask = pomTasks.get(m.gav());
                 digestTask.addDependency(pomTask);
                 signatureTask.addDependency(pomTask);
+                deployTask.addDependency(pomTask);
                 Task<FileOutput> sourcesJarTask = sourcesJarTasks.get(m.gav());
                 digestTask.addDependency(sourcesJarTask);
                 signatureTask.addDependency(sourcesJarTask);
+                deployTask.addDependency(sourcesJarTask);
                 Task<FileOutput> javadocJarTask = javadocJarTasks.get(m.gav());
                 javadocJarTask.addDependency(documentationTask);
                 digestTask.addDependency(javadocJarTask);
                 signatureTask.addDependency(javadocJarTask);
+                deployTask.addDependency(javadocJarTask);
             }
         }
         runner.run();
