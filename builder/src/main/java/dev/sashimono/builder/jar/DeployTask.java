@@ -10,6 +10,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Base64;
 import java.util.List;
@@ -33,7 +34,7 @@ public class DeployTask implements Function<TaskMap, Void> {
 
     @Override
     public Void apply(final TaskMap taskMap) {
-        // TODO Support staging repository deployment
+        // TODO Support staging repository deployment and generation of maven-metadata.xml
         if (getBoolean(DEPLOY_ARTIFACTS)) {
             final String url = System.getenv("REPOSITORY_URL");
             final String username = System.getenv("REPOSITORY_USERNAME");
@@ -44,7 +45,8 @@ public class DeployTask implements Function<TaskMap, Void> {
                     final String fullUri = url + "/" + outputDir.relativize(file);
                     final HttpResponse<String> response = client.send(
                             HttpRequest.newBuilder().PUT(ofFile(file)).uri(new URI(fullUri)).header("Authorization",
-                                    "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes()))
+                                    "Basic " + Base64.getEncoder()
+                                            .encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8)))
                                     .build(),
                             BodyHandlers.ofString());
                     log.info(response.toString());
