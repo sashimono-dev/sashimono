@@ -1,6 +1,6 @@
 package dev.sashimono.mavenplugin.copy;
 
-import static dev.sashimono.mavenplugin.config.MavenConfigWriter.SASHIMONO_DIR;
+import static dev.sashimono.builder.config.ConfigReader.SASHIMONO_DIR;
 
 import java.io.File;
 import java.io.IOException;

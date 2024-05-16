@@ -3,6 +3,10 @@ package dev.sashimono.builder.complete;
 import static dev.sashimono.builder.jar.JarTask.*;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +22,8 @@ public class BuildProjectTestCase {
     public static final String NEW_LINE = "\n";
 
     @BuildTest("src/test/resources/simple-project")
-    public void testBuildingSimpleProject(BuildResult result) throws IOException {
+    public void testBuildingSimpleProject(BuildResult result)
+            throws IOException, ClassNotFoundException, NoSuchMethodException {
         Path dir = result.output().resolve("com").resolve("foo").resolve("test").resolve("1.1.0.Final");
         Path jar = dir.resolve("test-1.1.0.Final.jar");
         Path pom = dir.resolve("test-1.1.0.Final.pom");
@@ -73,6 +78,12 @@ public class BuildProjectTestCase {
                     StandardCharsets.UTF_8);
             Assertions.assertEquals(expectedManifestContents, manifestContents);
             Assertions.assertEquals(0, manifest.getLastModifiedTime().toMillis());
+            URLClassLoader classLoader = new URLClassLoader(new URL[] { jar.toFile().toURI().toURL() });
+            Class clazz = Class.forName("foo.bar.Main", true, classLoader);
+            Method method = clazz.getMethod("main", String[].class);
+            Parameter[] parameters = method.getParameters();
+            Assertions.assertEquals(1, parameters.length);
+            Assertions.assertEquals("args", parameters[0].getName());
         }
 
         String pomContents = Files.readString(pom);
@@ -139,7 +150,8 @@ public class BuildProjectTestCase {
     }
 
     @BuildTest("src/test/resources/multi-module-project")
-    public void testBuildingMultiModuleProject(BuildResult result) throws IOException {
+    public void testBuildingMultiModuleProject(BuildResult result)
+            throws IOException, ClassNotFoundException, NoSuchMethodException {
         Path dir = result.output().resolve("com").resolve("acme").resolve("foo").resolve("1.0");
         Path jar = dir.resolve("foo-1.0.jar");
         Path pom = dir.resolve("foo-1.0.pom");
@@ -165,6 +177,12 @@ public class BuildProjectTestCase {
                     StandardCharsets.UTF_8);
             Assertions.assertEquals(expectedManifestContents, manifestContents);
             Assertions.assertEquals(0, manifest.getLastModifiedTime().toMillis());
+            URLClassLoader classLoader = new URLClassLoader(new URL[] { jar.toFile().toURI().toURL() });
+            Class clazz = Class.forName("acme.foo.Greeter", true, classLoader);
+            Method method = clazz.getMethod("greet", String.class);
+            Parameter[] parameters = method.getParameters();
+            Assertions.assertEquals(1, parameters.length);
+            Assertions.assertEquals("name", parameters[0].getName());
         }
 
         String pomContents = Files.readString(pom);
@@ -199,8 +217,8 @@ public class BuildProjectTestCase {
 
                     public class Greeter {
 
-                        public String greet() {
-                            return "Hello World";
+                        public String greet(String name) {
+                            return "Hello " + name;
                         }
 
                     }
@@ -245,6 +263,12 @@ public class BuildProjectTestCase {
                     StandardCharsets.UTF_8);
             Assertions.assertEquals(expectedManifestContents, manifestContents);
             Assertions.assertEquals(0, manifest.getLastModifiedTime().toMillis());
+            URLClassLoader classLoader = new URLClassLoader(new URL[] { jar.toFile().toURI().toURL() });
+            Class clazz = Class.forName("acme.bar.Main", true, classLoader);
+            Method method = clazz.getMethod("main", String[].class);
+            Parameter[] parameters = method.getParameters();
+            Assertions.assertEquals(1, parameters.length);
+            Assertions.assertEquals("args", parameters[0].getName());
         }
 
         pomContents = Files.readString(pom);
@@ -290,7 +314,7 @@ public class BuildProjectTestCase {
                     import acme.foo.Greeter;
                     public class Main {
                         public static void main(String ... args) {
-                            System.out.println(new Greeter().greet());
+                            System.out.println(new Greeter().greet("Sashimono"));
                         }
 
                     }

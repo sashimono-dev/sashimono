@@ -14,7 +14,8 @@ import java.util.Map;
  * @param filteredResourcesDir Optional directory containing non .class resources prefiltered by Maven
  * @param pomPath The path of the module POM file
  * @param manifestEntries The manifest entries associated with the jar
+ * @param compilerArguments The arguments used when compiling the jar
  */
 public record ModuleConfig(GAV gav, String packaging, List<Dependency> dependencies, List<Path> sourceDirectories,
-        Path filteredResourcesDir, Path pomPath, Map<String, String> manifestEntries) {
+        Path filteredResourcesDir, Path pomPath, Map<String, String> manifestEntries, List<String> compilerArguments) {
 }
