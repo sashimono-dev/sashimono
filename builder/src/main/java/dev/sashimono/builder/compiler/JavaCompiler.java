@@ -32,8 +32,9 @@ public class JavaCompiler extends AbstractJavaTool {
         return log;
     }
 
-    public static JavaCompiler build(final List<Path> dependencies, final List<Path> sourceDirectories) {
-        return new JavaCompiler(ToolProvider.getSystemJavaCompiler(), List.of(), dependencies, sourceDirectories);
+    public static JavaCompiler build(final List<Path> dependencies, final List<Path> sourceDirectories,
+            final List<String> compilerArguments) {
+        return new JavaCompiler(ToolProvider.getSystemJavaCompiler(), compilerArguments, dependencies, sourceDirectories);
     }
 
     @Override

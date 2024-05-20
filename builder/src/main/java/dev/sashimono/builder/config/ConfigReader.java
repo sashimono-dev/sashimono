@@ -31,6 +31,7 @@ public class ConfigReader {
     public static final String POM = "pom ";
     public static final String MANIFEST_ENTRY = "manifest_entry ";
     public static final String DELIMITER = ":";
+    public static final String COMPILER_ARGUMENT = "compiler_argument ";
 
     public static ProjectConfig readConfig(Path root) {
 
@@ -58,6 +59,7 @@ public class ConfigReader {
                 Path filteredResourcesDir = null;
                 Path pomPath = null;
                 Map<String, String> manifestEntries = new TreeMap<>();
+                List<String> compilerArguments = new ArrayList<>();
                 var lineNo = 0;
                 for (var i : lines) {
                     try {
@@ -102,6 +104,9 @@ public class ConfigReader {
                             var manifestEntry = i.substring(MANIFEST_ENTRY.length());
                             var parts = manifestEntry.split(DELIMITER);
                             manifestEntries.put(parts[0], parts[1]);
+                        } else if (i.startsWith(COMPILER_ARGUMENT)) {
+                            var argument = i.substring(COMPILER_ARGUMENT.length());
+                            compilerArguments.add(argument);
                         } else {
                             throw new RuntimeException("error parsing dependencies file: " + i);
                         }
@@ -114,7 +119,8 @@ public class ConfigReader {
                 }
                 // Root will also get added as a module here
                 moduleConfigs.add(
-                        new ModuleConfig(gav, packaging, deps, sourceDirs, filteredResourcesDir, pomPath, manifestEntries));
+                        new ModuleConfig(gav, packaging, deps, sourceDirs, filteredResourcesDir, pomPath, manifestEntries,
+                                compilerArguments));
             }
             return new ProjectConfig(root, moduleConfigs);
         } catch (IOException e) {

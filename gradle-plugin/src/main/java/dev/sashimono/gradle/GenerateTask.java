@@ -31,7 +31,7 @@ public class GenerateTask extends DefaultTask {
                 List.of(),
                 null,
                 getProject().getRootDir().toPath(), //TODO
-                Map.of());
+                Map.of(), List.of());
         ConfigWriter.writeConfig(getProject().getRootDir().toPath(), moduleConfig, List.of());
     }
 }

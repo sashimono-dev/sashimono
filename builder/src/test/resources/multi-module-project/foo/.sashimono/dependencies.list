@@ -3,3 +3,8 @@ artifact com.acme:foo:1.0
 packaging jar
 source src/main/java
 pom pom.xml
+compiler_argument -source
+compiler_argument 1.8
+compiler_argument -target
+compiler_argument 1.8
+compiler_argument -parameters

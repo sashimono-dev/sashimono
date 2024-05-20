@@ -1,5 +1,7 @@
 package dev.sashimono.builder;
 
+import static dev.sashimono.builder.config.ConfigReader.JAR;
+
 import java.net.http.HttpClient;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -36,7 +38,6 @@ public class Sashimono {
 
     private static final RepositoryConfig CENTRAL = new RepositoryConfig(
             List.of(new Repository("central", "https://repo1.maven.org/maven2")));
-    public static final String JAR = "jar";
     final Path projectRoot;
     final Path outputDir;
 
@@ -106,7 +107,7 @@ public class Sashimono {
             }
             if (m.packaging().equals(JAR)) {
                 Task<CompileResult> compileTask = runner.newTask(CompileResult.class,
-                        new JavaCompilerTask(m.sourceDirectories()));
+                        new JavaCompilerTask(m.sourceDirectories(), m.compilerArguments()));
                 Task<DocumentationResult> documentationTask = runner.newTask(DocumentationResult.class,
                         new JavaDocumenterTask(m.sourceDirectories()));
                 for (var i : moduleDependencies) {
