@@ -80,6 +80,14 @@ public class MavenConfigWriter {
         for (final Plugin plugin : project.getModel().getBuild().getPlugins()) {
             if (plugin.getArtifactId().equals(MAVEN_COMPILER_PLUGIN)) {
                 final Xpp3Dom dom = (Xpp3Dom) plugin.getConfiguration();
+                Optional.ofNullable(dom).map(d -> d.getChild("source")).ifPresent(a -> {
+                    args.add("-source");
+                    args.add(a.getValue());
+                });
+                Optional.ofNullable(dom).map(d -> d.getChild("target")).ifPresent(a -> {
+                    args.add("-target");
+                    args.add(a.getValue());
+                });
                 Optional.ofNullable(dom).map(d -> d.getChild("compilerArgs"))
                         .ifPresent(c -> Arrays.stream(c.getChildren()).forEach(a -> args.add(a.getValue())));
                 Optional.ofNullable(dom).map(d -> d.getChild("compilerArgument")).ifPresent(a -> args.add(a.getValue()));

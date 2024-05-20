@@ -56,6 +56,10 @@ public class MavenConfigWriterTestCase {
                 filtered_resources true
                 source src/main/java
                 pom pom.xml
+                compiler_argument -source
+                compiler_argument 1.8
+                compiler_argument -target
+                compiler_argument 1.8
                 compiler_argument -parameters
                 compiler_argument -proc:none
                 """.replaceAll(NEW_LINE, System.lineSeparator());
@@ -86,6 +90,10 @@ public class MavenConfigWriterTestCase {
                 source src/main/java
                 pom pom.xml
                 manifest_entry mainClass:foo.bar.Main
+                compiler_argument -source
+                compiler_argument 1.8
+                compiler_argument -target
+                compiler_argument 1.8
                 compiler_argument -parameters
                 compiler_argument -proc:none
                 """.replaceAll(NEW_LINE, System.lineSeparator());
@@ -179,6 +187,8 @@ public class MavenConfigWriterTestCase {
         final String xml = """
                 <?xml version="1.0" encoding="UTF-8"?>
                 <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
                     <compilerArgs>
                         <arg>%s</arg>
                     </compilerArgs>

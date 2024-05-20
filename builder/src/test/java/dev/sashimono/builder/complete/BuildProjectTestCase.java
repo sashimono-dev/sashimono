@@ -2,6 +2,7 @@ package dev.sashimono.builder.complete;
 
 import static dev.sashimono.builder.jar.JarTask.*;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -20,6 +21,8 @@ import dev.sashimono.builder.test.BuildTest;
 public class BuildProjectTestCase {
 
     public static final String NEW_LINE = "\n";
+    public static final int CLASS_MAGIC_NO = 0xCAFEBABE;
+    public static final int JAVA_8_MAJOR_VERSION = 52;
 
     @BuildTest("src/test/resources/simple-project")
     public void testBuildingSimpleProject(BuildResult result)
@@ -84,6 +87,11 @@ public class BuildProjectTestCase {
             Parameter[] parameters = method.getParameters();
             Assertions.assertEquals(1, parameters.length);
             Assertions.assertEquals("args", parameters[0].getName());
+            var rawClass = jarFile.getJarEntry("foo/bar/Main.class");
+            DataInputStream inputStream = new DataInputStream(jarFile.getInputStream(rawClass));
+            Assertions.assertEquals(CLASS_MAGIC_NO, inputStream.readInt());
+            Assertions.assertEquals(0, inputStream.readUnsignedShort());
+            Assertions.assertEquals(JAVA_8_MAJOR_VERSION, inputStream.readUnsignedShort());
         }
 
         String pomContents = Files.readString(pom);
@@ -183,6 +191,11 @@ public class BuildProjectTestCase {
             Parameter[] parameters = method.getParameters();
             Assertions.assertEquals(1, parameters.length);
             Assertions.assertEquals("name", parameters[0].getName());
+            var rawClass = jarFile.getJarEntry("acme/foo/Greeter.class");
+            DataInputStream inputStream = new DataInputStream(jarFile.getInputStream(rawClass));
+            Assertions.assertEquals(CLASS_MAGIC_NO, inputStream.readInt());
+            Assertions.assertEquals(0, inputStream.readUnsignedShort());
+            Assertions.assertEquals(JAVA_8_MAJOR_VERSION, inputStream.readUnsignedShort());
         }
 
         String pomContents = Files.readString(pom);
@@ -269,6 +282,11 @@ public class BuildProjectTestCase {
             Parameter[] parameters = method.getParameters();
             Assertions.assertEquals(1, parameters.length);
             Assertions.assertEquals("args", parameters[0].getName());
+            var rawClass = jarFile.getJarEntry("acme/bar/Main.class");
+            DataInputStream inputStream = new DataInputStream(jarFile.getInputStream(rawClass));
+            Assertions.assertEquals(CLASS_MAGIC_NO, inputStream.readInt());
+            Assertions.assertEquals(0, inputStream.readUnsignedShort());
+            Assertions.assertEquals(JAVA_8_MAJOR_VERSION, inputStream.readUnsignedShort());
         }
 
         pomContents = Files.readString(pom);

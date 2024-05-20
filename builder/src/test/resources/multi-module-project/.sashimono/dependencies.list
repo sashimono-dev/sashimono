@@ -5,4 +5,8 @@ packaging pom
 module foo
 module bar
 pom pom.xml
+compiler_argument -source
+compiler_argument 1.8
+compiler_argument -target
+compiler_argument 1.8
 compiler_argument -parameters
