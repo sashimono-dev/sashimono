@@ -17,7 +17,7 @@ public class JavadocJarTask extends AbstractJarTask implements Function<TaskMap,
     private static final Log log = Log.of(JavadocJarTask.class);
 
     public JavadocJarTask(final Path outputDir, final GAV gav, final Path filteredResourcesDir) {
-        super(outputDir, gav, filteredResourcesDir);
+        super(outputDir, gav, "javadoc", filteredResourcesDir);
     }
 
     @Override
@@ -31,7 +31,7 @@ public class JavadocJarTask extends AbstractJarTask implements Function<TaskMap,
         try {
             // TODO Write manifest file like JarTask
             collectFiles(deps.documentationDirectory());
-            return new FileOutput(createJar("javadoc"));
+            return new FileOutput(createJar());
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }

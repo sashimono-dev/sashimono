@@ -1,5 +1,7 @@
 package dev.sashimono.gradle;
 
+import static dev.sashimono.builder.config.ConfigReader.JAR;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +24,12 @@ public class GenerateTask extends DefaultTask {
                 .getResolvedConfiguration().getResolvedArtifacts()) {
             deps.add(new Dependency(
                     new GAV(i.getModuleVersion().getId().getGroup(), i.getName(), i.getModuleVersion().getId().getVersion()),
-                    i.getType()));
+                    i.getType(), i.getClassifier()));
         }
         ModuleConfig moduleConfig = new ModuleConfig(
                 new GAV(getProject().getGroup().toString(), getProject().getName(), getProject().getVersion().toString()),
-                "jar",
+                JAR,
+                null,
                 deps,
                 List.of(),
                 null,

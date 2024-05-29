@@ -1,5 +1,7 @@
 package dev.sashimono.mavenplugin;
 
+import static dev.sashimono.builder.config.ConfigReader.JAR;
+
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
@@ -61,7 +63,7 @@ public class SashimonoMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
         if (Objects.equals(MAVEN_PROJECT, project.getPackaging())) {
             ensurePluginMojoIsGenerated();
-            project.setPackaging("jar");
+            project.setPackaging(JAR);
         }
         final boolean resourcesCopied = ResourceCopier.copyResources(project, outputDirectory);
 

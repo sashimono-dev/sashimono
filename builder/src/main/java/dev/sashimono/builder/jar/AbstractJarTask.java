@@ -14,36 +14,35 @@ import java.util.zip.ZipEntry;
 import dev.sashimono.builder.config.GAV;
 import dev.sashimono.builder.util.FileUtil;
 import dev.sashimono.builder.util.Log;
+import dev.sashimono.builder.util.StringUtil;
 
 public abstract class AbstractJarTask {
 
     public static final String DELIMITER = "-";
     protected final Path outputDir;
     protected final GAV gav;
+    protected final String classifier;
     protected final Path filteredResourcesDir;
     protected final Map<Path, List<Path>> toJarFilesByDir = new TreeMap<>();
 
-    public AbstractJarTask(final Path outputDir, final GAV gav, final Path filteredResourcesDir) {
+    public AbstractJarTask(final Path outputDir, final GAV gav, final String classifier, final Path filteredResourcesDir) {
         this.outputDir = outputDir;
         this.gav = gav;
+        this.classifier = classifier;
         this.filteredResourcesDir = filteredResourcesDir;
     }
 
     protected abstract Log getLogger();
 
     protected Path createJar() throws IOException {
-        return createJar("");
-    }
-
-    protected Path createJar(final String suffix) throws IOException {
         if (filteredResourcesDir != null) {
             collectFiles(filteredResourcesDir);
         }
         final Path parentDir = FileUtil.getOutputPath(outputDir, gav);
         Files.createDirectories(parentDir);
         String artifactName = gav.artifact() + DELIMITER + gav.version();
-        if (!suffix.isBlank()) {
-            artifactName += DELIMITER + suffix;
+        if (!StringUtil.isNullOrBlank(classifier)) {
+            artifactName += DELIMITER + classifier;
         }
         artifactName += ".jar";
         final Path target = parentDir.resolve(artifactName);

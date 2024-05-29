@@ -18,7 +18,7 @@ public class SourcesJarTask extends AbstractJarTask implements Function<TaskMap,
     protected final List<Path> sourceDirs;
 
     public SourcesJarTask(final Path outputDir, final GAV gav, final Path filteredResourcesDir, final List<Path> sourceDirs) {
-        super(outputDir, gav, filteredResourcesDir);
+        super(outputDir, gav, "sources", filteredResourcesDir);
         this.sourceDirs = sourceDirs;
     }
 
@@ -32,7 +32,7 @@ public class SourcesJarTask extends AbstractJarTask implements Function<TaskMap,
         try {
             // TODO Write manifest file like JarTask
             collectFiles(sourceDirs.toArray(new Path[0]));
-            return new FileOutput(createJar("sources"));
+            return new FileOutput(createJar());
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }

@@ -43,7 +43,7 @@ public class MavenConfigWriter {
                     // Write dependency details
                     sashimonoDeps.add(new dev.sashimono.builder.config.Dependency(new GAV(artifact.getGroupId(),
                             artifact.getArtifactId(), artifact.getVersion()),
-                            artifact.getExtension()));
+                            artifact.getExtension(), artifact.getClassifier()));
                 }
             }
             final List<Path> sourceDirectories = new ArrayList<>();
@@ -52,7 +52,8 @@ public class MavenConfigWriter {
                 sourceDirectories.add(Path.of(srcPath));
             }
             findCompilerArguments(project);
-            final ModuleConfig moduleConfig = new ModuleConfig(gav, project.getPackaging(), sashimonoDeps, sourceDirectories,
+            final ModuleConfig moduleConfig = new ModuleConfig(gav,
+                    project.getPackaging(), project.getArtifact().getClassifier(), sashimonoDeps, sourceDirectories,
                     resourcesCopied ? Path.of("tmp") : null, project.getFile().toPath(), findManifestEntries(project),
                     findCompilerArguments(project));
             ConfigWriter.writeConfig(baseDirPath, moduleConfig, project.getModules());

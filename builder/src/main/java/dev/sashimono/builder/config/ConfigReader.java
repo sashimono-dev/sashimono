@@ -55,6 +55,7 @@ public class ConfigReader {
                 List<Dependency> deps = new ArrayList<>();
                 List<Path> sourceDirs = new ArrayList<>();
                 GAV gav = null;
+                String classifier = null;
                 String packaging = null;
                 Path filteredResourcesDir = null;
                 Path pomPath = null;
@@ -73,8 +74,9 @@ public class ConfigReader {
                         if (i.startsWith(REQUIRE)) {
                             var dep = i.substring(REQUIRE.length());
                             var parts = dep.split(DELIMITER);
+                            var depClassifier = parts.length > 3 ? parts[3] : null;
                             // TODO: error handling and reporting
-                            deps.add(new Dependency(new GAV(parts[0], parts[1], parts[2]), JAR));
+                            deps.add(new Dependency(new GAV(parts[0], parts[1], parts[2]), JAR, depClassifier));
                         } else if (i.startsWith(ARTIFACT)) {
                             if (gav != null) {
                                 throw new RuntimeException("artifact directive specified twice");
@@ -82,6 +84,7 @@ public class ConfigReader {
                             var dep = i.substring(ARTIFACT.length());
                             var parts = dep.split(DELIMITER);
                             gav = new GAV(parts[0], parts[1], parts[2]);
+                            classifier = parts.length > 3 ? parts[3] : null;
                         } else if (i.startsWith(MODULE)) {
                             var module = i.substring(MODULE.length());
                             Path subModule = project.resolve(module);
@@ -119,7 +122,8 @@ public class ConfigReader {
                 }
                 // Root will also get added as a module here
                 moduleConfigs.add(
-                        new ModuleConfig(gav, packaging, deps, sourceDirs, filteredResourcesDir, pomPath, manifestEntries,
+                        new ModuleConfig(gav, packaging, classifier, deps, sourceDirs, filteredResourcesDir, pomPath,
+                                manifestEntries,
                                 compilerArguments));
             }
             return new ProjectConfig(root, moduleConfigs);

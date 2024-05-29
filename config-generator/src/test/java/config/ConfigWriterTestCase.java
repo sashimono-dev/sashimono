@@ -1,6 +1,7 @@
 package config;
 
 import static dev.sashimono.builder.config.ConfigReader.DEPENDENCIES_LIST;
+import static dev.sashimono.builder.config.ConfigReader.JAR;
 import static dev.sashimono.builder.config.ConfigReader.SASHIMONO_DIR;
 
 import java.io.File;
@@ -37,7 +38,7 @@ public class ConfigWriterTestCase {
                 module bar
                 require org.apache.httpcomponents:httpclient:4.5.14
                 require org.hibernate.orm:hibernate-core:6.4.4.Final
-                require com.h2database:h2:h2.version
+                require io.netty:netty-transport-native-epoll:4.1.110.Final:linux-aarch_64
                 filtered_resources false
                 source src/main/java
                 pom pom.xml
@@ -60,7 +61,7 @@ public class ConfigWriterTestCase {
                 packaging jar
                 require org.apache.httpcomponents:httpclient:4.5.14
                 require org.hibernate.orm:hibernate-core:6.4.4.Final
-                require com.h2database:h2:h2.version
+                require io.netty:netty-transport-native-epoll:4.1.110.Final:linux-aarch_64
                 filtered_resources false
                 source src/main/java
                 pom pom.xml
@@ -73,7 +74,8 @@ public class ConfigWriterTestCase {
     private ModuleConfig createModule(final GAV project, final List<Dependency> dependencies, final File tempDir,
             final Map<String, String> manifest, final List<String> compilerArguments) {
         return new ModuleConfig(project,
-                "jar",
+                JAR,
+                null,
                 dependencies,
                 List.of(tempDir.toPath().resolve("src/main/java")),
                 null, tempDir.toPath().resolve("pom.xml"), manifest, compilerArguments);
@@ -81,9 +83,10 @@ public class ConfigWriterTestCase {
 
     private List<Dependency> createDependencies() {
         final Dependency dependency1 = new Dependency(
-                new GAV("org.apache.httpcomponents", "httpclient", "4.5.14"), "jar");
-        final Dependency dependency2 = new Dependency(new GAV("org.hibernate.orm", "hibernate-core", "6.4.4.Final"), "jar");
-        final Dependency dependency3 = new Dependency(new GAV("com.h2database", "h2", "h2.version"), "jar");
+                new GAV("org.apache.httpcomponents", "httpclient", "4.5.14"), JAR, null);
+        final Dependency dependency2 = new Dependency(new GAV("org.hibernate.orm", "hibernate-core", "6.4.4.Final"), JAR, null);
+        final Dependency dependency3 = new Dependency(new GAV("io.netty", "netty-transport-native-epoll", "4.1.110.Final"), JAR,
+                "linux-aarch_64");
         return List.of(dependency1, dependency2, dependency3);
     }
 

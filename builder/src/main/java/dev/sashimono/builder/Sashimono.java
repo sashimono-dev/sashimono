@@ -69,9 +69,9 @@ public class Sashimono {
         for (var m : config.moduleConfigs()) {
             if (m.packaging().equals(JAR)) {
                 Task<JarResult> jarTask = runner.newTask(JarResult.class,
-                        new JarTask(outputDir, m.gav(), m.filteredResourcesDir(), m.manifestEntries()));
+                        new JarTask(outputDir, m.gav(), m.classifier(), m.filteredResourcesDir(), m.manifestEntries()));
                 jarTasks.put(m.gav(), jarTask);
-                depTasks.put(new Dependency(m.gav(), JAR), jarTask);
+                depTasks.put(new Dependency(m.gav(), JAR, m.classifier()), jarTask);
                 Task<FileOutput> pomTask = runner.newTask(FileOutput.class,
                         new PomTask(outputDir, m.gav(), m.pomPath()));
                 pomTasks.put(m.gav(), pomTask);
