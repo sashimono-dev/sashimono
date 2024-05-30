@@ -21,6 +21,7 @@ import java.util.Map;
 
 import dev.sashimono.builder.config.Dependency;
 import dev.sashimono.builder.config.ModuleConfig;
+import dev.sashimono.builder.util.StringUtil;
 
 /**
  * Writes a project config to a .sashimono directory
@@ -36,7 +37,9 @@ public class ConfigWriter {
             try (final BufferedWriter writer = Files.newBufferedWriter(filePath)) {
                 // Write artifact details
                 writer.write(ARTIFACT + moduleConfig.gav().group() + DELIMITER + moduleConfig.gav().artifact() + DELIMITER
-                        + moduleConfig.gav().version() + System.lineSeparator());
+                        + moduleConfig.gav().version()
+                        + (!StringUtil.isNullOrBlank(moduleConfig.classifier()) ? DELIMITER + moduleConfig.classifier() : "")
+                        + System.lineSeparator());
                 // Write package details
                 writer.write(PACKAGING + moduleConfig.packaging() + System.lineSeparator());
                 for (final String module : submodules) {
@@ -49,7 +52,9 @@ public class ConfigWriter {
                     // Write dependency details
                     writer.write(REQUIRE + dependency.GAV().group() + DELIMITER
                             + dependency.GAV().artifact() + DELIMITER
-                            + dependency.GAV().version() + System.lineSeparator());
+                            + dependency.GAV().version()
+                            + (!StringUtil.isNullOrBlank(dependency.classifier()) ? DELIMITER + dependency.classifier() : "")
+                            + System.lineSeparator());
                 }
                 writer.write(FILTERED_RESOURCES + (moduleConfig.filteredResourcesDir() != null) + System.lineSeparator());
                 for (final Path srcPath : moduleConfig.sourceDirectories()) {

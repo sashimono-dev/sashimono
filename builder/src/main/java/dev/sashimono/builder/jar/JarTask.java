@@ -1,5 +1,7 @@
 package dev.sashimono.builder.jar;
 
+import static dev.sashimono.builder.config.ConfigReader.JAR;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -28,9 +30,9 @@ public class JarTask extends AbstractJarTask implements Function<TaskMap, JarRes
     public static final String EOL = "\r\n"; // For consistency across manifests
     private final Map<String, String> manifestEntries;
 
-    public JarTask(final Path outputDir, final GAV gav, final Path filteredResourcesDir,
+    public JarTask(final Path outputDir, final GAV gav, final String classifier, final Path filteredResourcesDir,
             final Map<String, String> manifestEntries) {
-        super(outputDir, gav, filteredResourcesDir);
+        super(outputDir, gav, classifier, filteredResourcesDir);
         this.manifestEntries = manifestEntries;
     }
 
@@ -46,7 +48,7 @@ public class JarTask extends AbstractJarTask implements Function<TaskMap, JarRes
             writeManifestFile(deps.classesDirectory());
             collectFiles(deps.classesDirectory());
             final Path target = createJar();
-            return new JarResult(new ResolvedDependency(new Dependency(gav, "jar"), target, Optional.empty()));
+            return new JarResult(new ResolvedDependency(new Dependency(gav, JAR, classifier), target, Optional.empty()));
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }

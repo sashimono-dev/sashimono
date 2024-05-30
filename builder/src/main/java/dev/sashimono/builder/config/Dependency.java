@@ -5,6 +5,7 @@ package dev.sashimono.builder.config;
  *
  * @param GAV
  * @param type
+ * @param classifier
  */
-public record Dependency(GAV GAV, String type) {
+public record Dependency(GAV GAV, String type, String classifier) {
 }

@@ -14,6 +14,7 @@ import java.util.function.Function;
 
 import dev.sashimono.builder.config.Dependency;
 import dev.sashimono.builder.config.RepositoryConfig;
+import dev.sashimono.builder.util.StringUtil;
 import dev.sashimono.builder.util.TaskMap;
 
 /**
@@ -38,7 +39,8 @@ public class DownloadDependencyTask implements Function<TaskMap, ResolvedDepende
         try {
             Path target = Files.createTempFile("sashimono", "dep" + "." + dependency.type());
             String localPart = dependency.GAV().group().replace(".", "/") + "/" + dependency.GAV().artifact() + "/"
-                    + dependency.GAV().version() + "/" + dependency.GAV().artifact() + "-" + dependency.GAV().version() + "."
+                    + dependency.GAV().version() + "/" + dependency.GAV().artifact() + "-" + dependency.GAV().version()
+                    + (!StringUtil.isNullOrBlank(dependency.classifier()) ? "-" + dependency.classifier() : "") + "."
                     + dependency.type();
             for (var repo : repositoryConfig.repositories()) {
                 Files.deleteIfExists(target);

@@ -4,6 +4,7 @@ packaging jar
 
 #project dependency files, format TBD but will draw inspiration from go.mod
 require org.apache.httpcomponents:httpclient:4.5.14 #TODO: checksums
+require io.netty:netty-transport-native-epoll:4.1.110.Final:linux-aarch_64
 filtered_resources true
 source src/main/java
 pom pom.xml

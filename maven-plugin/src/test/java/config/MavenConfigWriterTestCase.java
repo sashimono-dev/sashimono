@@ -1,6 +1,7 @@
 package config;
 
 import static dev.sashimono.builder.config.ConfigReader.DEPENDENCIES_LIST;
+import static dev.sashimono.builder.config.ConfigReader.JAR;
 import static dev.sashimono.builder.config.ConfigReader.SASHIMONO_DIR;
 import static dev.sashimono.mavenplugin.config.MavenConfigWriter.MAVEN_COMPILER_PLUGIN;
 import static dev.sashimono.mavenplugin.config.MavenConfigWriter.MAVEN_JAR_PLUGIN;
@@ -14,8 +15,8 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.model.Build;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
@@ -23,6 +24,7 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.graph.Dependency;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -32,18 +34,16 @@ import dev.sashimono.mavenplugin.config.MavenConfigWriter;
 public class MavenConfigWriterTestCase {
 
     public static final String NEW_LINE = "\n";
+    public static final String POM = "pom";
 
     @Test
     public void testMultiModuleConfigWriter(@TempDir final File tempDir) throws IOException, XmlPullParserException {
         final Model model = createModel(List.of("foo", "bar"));
-        final List<Dependency> dependencies = createDependencies();
-        final MavenProject project = createModule(model, dependencies, tempDir);
+        final MavenProject project = createModule(model, tempDir);
         project.setBuild(createBuild("-parameters", "-proc:none"));
-        MavenConfigWriter.writeConfig(project, true, () -> List.of(
-                new org.eclipse.aether.graph.Dependency(new DefaultArtifact("org.apache.httpcomponents:httpclient:4.5.14"),
-                        "compile"),
-                new org.eclipse.aether.graph.Dependency(new DefaultArtifact("org.hibernate.orm:hibernate-core:6.4.4.Final"),
-                        "provided")));
+        project.setArtifact(new org.apache.maven.artifact.DefaultArtifact(project.getGroupId(), project.getArtifactId(),
+                project.getVersion(), "compile", POM, null, new DefaultArtifactHandler()));
+        MavenConfigWriter.writeConfig(project, true, this::createDependencies);
         final String fileContents = Files
                 .readString(tempDir.toPath().resolve(SASHIMONO_DIR).resolve(DEPENDENCIES_LIST));
         final String expected = """
@@ -53,6 +53,7 @@ public class MavenConfigWriterTestCase {
                 module bar
                 require org.apache.httpcomponents:httpclient:4.5.14
                 require org.hibernate.orm:hibernate-core:6.4.4.Final
+                require io.netty:netty-transport-native-epoll:4.1.110.Final:linux-aarch_64
                 filtered_resources true
                 source src/main/java
                 pom pom.xml
@@ -68,24 +69,22 @@ public class MavenConfigWriterTestCase {
 
     @Test
     public void testSingleModuleConfigWriter(@TempDir final File tempDir) throws IOException, XmlPullParserException {
-        final Model model = createModel("foo", "jar");
-        final List<Dependency> dependencies = createDependencies();
-        final MavenProject project = createModule(model, dependencies, tempDir);
+        final Model model = createModel("foo", JAR);
+        final MavenProject project = createModule(model, tempDir);
         final Build build = createBuild("foo.bar.Main", "-parameters", "-proc:none");
         project.setBuild(build);
-        MavenConfigWriter.writeConfig(project, false, () -> List.of(
-                new org.eclipse.aether.graph.Dependency(new DefaultArtifact("org.apache.httpcomponents:httpclient:4.5.14"),
-                        "compile"),
-                new org.eclipse.aether.graph.Dependency(new DefaultArtifact("org.hibernate.orm:hibernate-core:6.4.4.Final"),
-                        "provided")));
+        project.setArtifact(new org.apache.maven.artifact.DefaultArtifact(project.getGroupId(), project.getArtifactId(),
+                project.getVersion(), "compile", JAR, "dummy", null));
+        MavenConfigWriter.writeConfig(project, false, this::createDependencies);
 
         final String fileContents = Files
                 .readString(tempDir.toPath().resolve(SASHIMONO_DIR).resolve(DEPENDENCIES_LIST));
         final String expected = """
-                artifact com.acme:foo:1.0
+                artifact com.acme:foo:1.0:dummy
                 packaging jar
                 require org.apache.httpcomponents:httpclient:4.5.14
                 require org.hibernate.orm:hibernate-core:6.4.4.Final
+                require io.netty:netty-transport-native-epoll:4.1.110.Final:linux-aarch_64
                 filtered_resources false
                 source src/main/java
                 pom pom.xml
@@ -110,36 +109,32 @@ public class MavenConfigWriterTestCase {
     }
 
     private Model createModel(final List<String> modules) {
-        final Model model = createModel("parent", "pom");
+        final Model model = createModel("parent", POM);
         model.setModules(modules);
         return model;
     }
 
-    private MavenProject createModule(final Model model, final List<Dependency> dependencies, final File tempDir) {
+    private MavenProject createModule(final Model model, final File tempDir) {
         final MavenProject project = new MavenProject(model);
         project.setFile(tempDir.toPath().resolve("pom.xml").toFile());
-        project.setDependencies(dependencies);
         project.addCompileSourceRoot(tempDir.toPath().resolve("src/main/java").toString());
         return project;
     }
 
     private List<Dependency> createDependencies() {
-        final Dependency dependency1 = new Dependency();
-        dependency1.setGroupId("org.apache.httpcomponents");
-        dependency1.setArtifactId("httpclient");
-        dependency1.setVersion("4.5.14");
-        dependency1.setScope("compile");
-        final Dependency dependency2 = new Dependency();
-        dependency2.setGroupId("org.hibernate.orm");
-        dependency2.setArtifactId("hibernate-core");
-        dependency2.setVersion("6.4.4.Final");
-        dependency2.setScope("provided");
-        final Dependency dependency3 = new Dependency();
-        dependency3.setGroupId("com.h2database");
-        dependency3.setArtifactId("h2");
-        dependency3.setVersion("h2.version");
-        dependency3.setScope("test");
-        return List.of(dependency1, dependency2, dependency3);
+        return List.of(
+                new Dependency(
+                        new DefaultArtifact("org.apache.httpcomponents", "httpclient", null, "4.5.14"),
+                        "compile"),
+                new Dependency(
+                        new DefaultArtifact("org.hibernate.orm", "hibernate-core", null, "6.4.4.Final"),
+                        "provided"),
+                new Dependency(new DefaultArtifact("com.h2database", "h2", null, "2.2.224"),
+                        "test"),
+                new Dependency(
+                        new DefaultArtifact("io.netty", "netty-transport-native-epoll", "linux-aarch_64", null,
+                                "4.1.110.Final"),
+                        "compile"));
     }
 
     private Build createBuild(final String compilerArg1, final String compilerArg2)

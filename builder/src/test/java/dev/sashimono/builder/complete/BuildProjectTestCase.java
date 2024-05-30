@@ -115,6 +115,13 @@ public class BuildProjectTestCase {
                             <version>4.5.14</version>
                             <scope>compile</scope>
                         </dependency>
+                        <dependency>
+                            <groupId>io.netty</groupId>
+                            <artifactId>netty-transport-native-epoll</artifactId>
+                            <version>4.1.110.Final</version>
+                            <scope>compile</scope>
+                            <classifier>linux-aarch_64</classifier>
+                        </dependency>
                     </dependencies>
 
 

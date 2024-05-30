@@ -10,4 +10,8 @@ public class StringUtil {
         return Stream.of(words.trim().split(delimiter + "|(?=\\p{Upper})")).filter(w -> !w.isEmpty())
                 .map(w -> w.substring(0, 1).toUpperCase() + w.substring(1)).collect(Collectors.joining(delimiter));
     }
+
+    public static boolean isNullOrBlank(final String str) {
+        return str == null || str.isBlank();
+    }
 }
